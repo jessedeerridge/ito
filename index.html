@@ -1,3 +1,6 @@
+ドラッグがクリックではできるが、タッチ操作できない。直して。
+それから、下にある手札カード（順カード設置前のカード）のレイヤーは順カードよりも前のレイヤーにして。
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -19,7 +22,6 @@
   #lobby{padding:20px;border-top:1px solid #eee; position:relative; z-index:2;}
   .copy-btn.copied, .btn.ghost.copied{background:#16a34a;color:#fff;border-color:#16a34a;}
 
-  /* ★ main背景：入室前/入室後で切替 */
   main{
     position:relative;
     height:calc(100vh - 60px);
@@ -32,7 +34,6 @@
   main.prejoin{ background-image:url('maemain.jpg'); }
   main.joined{ background-image:url('maingazo.jpg'); }
 
-  /* ★ 着席ポップ */
   .seat-pop{
     position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
     background:orange;border:1px solid #eee;border-radius:12px;
@@ -48,7 +49,6 @@
   .tab.disabled::after{content:'✕';position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:700;color:#b91c1c;pointer-events:none;}
   .tab.active{background:#111;color:#fff;border-color:#111;}
 
-  /* ★ ホスト人数選択中：参加者に出す黒ポップ（下固定） */
   .host-selecting-pop{
     position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
     background:rgba(20,20,20,.92);color:#fff;
@@ -59,72 +59,44 @@
   }
   .host-selecting-pop.hidden{display:none;}
 
-  /* =========================
-     ★ 円＋広場を重ねる「テーブルエリア」
-     ========================= */
-  .table-area{
-    position:relative;
-    width:min(520px, 92vw);
-    height:min(520px, 92vw);
-    max-width:520px;
-    max-height:520px;
-    margin:20px auto 0;
-  }
-
-  /* ★ 四角周回の基準 */
   .player-circle{
-    position:absolute;
-    inset:0;
-    width:100%;
-    height:100%;
-    border-radius:0;
-    box-sizing:border-box;
-    border:none;
-    z-index:2;
-    pointer-events:none;
+    position:relative;width:260px;height:260px;
+    margin:20px auto 0;border-radius:50%;
+    box-sizing:border-box;border:none;
   }
-
-  /* ★ ガイドの四角枠（不要なら display:none） */
-  .player-circle::after{
-    content:'';
-    position:absolute;
-    left:50%; top:50%;
-    transform:translate(-50%,-50%);
-    width:86%;
-    height:86%;
-    border:2px dashed rgba(0,0,0,.18);
-    border-radius:16px;
-    background:transparent;
-  }
-
+  .player-circle::before{content:'';}
   .player-tag{
     position:absolute;transform:translate(-50%,-50%);
     padding:4px 8px;border-radius:999px;background:#f8f8f8;
     border:1px solid #ddd;font-size:12px;white-space:nowrap;
-    line-height:1.1;
-    user-select:none;
-    cursor:pointer;
-    pointer-events:auto;
   }
   .player-tag.me{ background:#111;color:#fff;border-color:#111; }
 
-  /* ★ クリスタルは「ネームタグの上」に固定 */
-  .tag-crystal{
-    position:absolute;
-    left:50%;
-    top:-10px;
-    transform:translate(-50%,-100%);
-    width:18px;height:18px;
-    pointer-events:none;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.20));
+  .player-tag.picked{
+    background:orange !important;
+    color:#111 !important;
+    border-color:#eab308 !important;
   }
-  .tag-crystal svg{width:100%;height:100%;display:block;overflow:visible;}
 
-  /* 他プレイヤーのミニカード（ネームタグの下に扇状） */
-  .player-tag .mini-hand{
+  .player-tag .mini-hand-row{
     position:absolute;left:50%;top:100%;
     transform:translate(-50%,3px);
-    width:60px;height:30px;pointer-events:none;
+    display:flex;gap:6px;align-items:flex-end;
+    pointer-events:none;
+  }
+  .mini-role-card{
+    width:18px;height:26px;border-radius:5px;border:1px solid #bbb;
+    background:linear-gradient(135deg,#111,#444);
+    box-shadow:0 2px 6px rgba(0,0,0,.18);
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;font-weight:900;color:#fff;
+    letter-spacing:.02em;
+  }
+
+  .player-tag .mini-hand{
+    position:relative;
+    width:60px;height:30px;
+    pointer-events:none;
   }
   .player-tag .mini-card{
     position:absolute;left:50%;top:0;width:16px;height:22px;
@@ -135,131 +107,126 @@
     box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
 
-  /* ====== 中央「広場」 ====== */
-  .plaza-wrap{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    width:min(560px, 92vw);
-    z-index:1;
-  }
-  .plaza{
+  .my-hand-wrapper{
+    margin-top:6px;
+    text-align:center;
     position:relative;
-    width:100%;
-    height:460px;
-    border:2px dashed rgba(0,0,0,.18);
-    border-radius:16px;
-    background:rgba(255,255,255,.55);
-    box-shadow:0 10px 24px rgba(0,0,0,.08);
-    overflow:hidden;
-    touch-action:none;
+    z-index:650; /* order-big(520) より大きく */
+  }
+  .my-hand-title{display:none;}
+
+  .my-hand{
+    display:flex;justify-content:center;gap:10px;margin-top:4px;
+    min-height:90px;
+    align-items:center;
+    flex-wrap:wrap;
   }
 
-  /* ★ 広場のカード */
-  .field-card{
-    position:absolute;
-    width:64px;height:96px;
-    border-radius:10px;
-    border:1px solid rgba(0,0,0,.18);
-    background:#fff;
-    box-shadow:0 10px 22px rgba(0,0,0,.16);
-    display:flex;align-items:center;justify-content:center;
-    font-size:24px;font-weight:800;
-    transform:translate(-50%,-50%);
-    user-select:none;
-    touch-action:none;
-    cursor:grab;
-  }
-  .field-card:active{cursor:grabbing;}
-  .card-crystal{
-    position:absolute;
-    right:-10px;
-    top:-10px;
-    width:18px;height:18px;
-    pointer-events:none;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.22));
-  }
-  .card-crystal svg{width:100%;height:100%;display:block;overflow:visible;}
-
-  /* ★ 裏向き */
-  .field-card.back{
-    color:transparent;
-    background:
-      radial-gradient(circle at 30% 25%, rgba(255,255,255,.5), rgba(255,255,255,0) 45%),
-      repeating-linear-gradient(45deg, rgba(0,0,0,.10) 0 6px, rgba(0,0,0,.04) 6px 12px),
-      linear-gradient(180deg, #1f2937, #0b1220);
-    border-color: rgba(255,255,255,.18);
-  }
-  .field-card.back::after{
-    content:"BACK";
-    position:absolute;left:50%;top:50%;
-    transform:translate(-50%,-50%);
-    font-size:14px;font-weight:900;
-    letter-spacing:.12em;
-    color:rgba(255,255,255,.65);
-  }
-
-  /* ★ お題カード */
-  .topic-card{
-    position:absolute;
-    left:50%;
-    top:16px;
-    transform:translateX(-50%);
-    width:160px;
-    height:52px;
-    border-radius:12px;
-    border:2px solid rgba(255,255,255,.92);
-    background:rgba(80, 180, 255, .92);
-    box-shadow:0 14px 28px rgba(0,0,0,.18);
+  .hand-area{
     display:flex;
+    gap:10px;
     align-items:center;
     justify-content:center;
-    font-weight:900;
-    color:#fff;
-    letter-spacing:.06em;
-    user-select:none;
-    pointer-events:none;
-    z-index:5;
-  }
-
-  /* 自分の手札表示 */
-  .my-hand-wrapper{margin-top:16px;text-align:center;}
-  .my-hand-title{display:none;}
-  .my-hand{display:flex;justify-content:center;gap:8px;margin-top:6px;min-height:110px;flex-wrap:wrap;}
-  .my-card{
-    width:64px;height:96px;border-radius:10px;border:1px solid #ddd;background:#fff;
-    display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;
-    box-shadow:0 8px 18px rgba(0,0,0,.14);
-    user-select:none;
-    touch-action:none;
-    cursor:grab;
+    flex-wrap:wrap;
     position:relative;
   }
-  .my-card:active{cursor:grabbing;}
-  .my-card .hint{
-    position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);
-    font-size:11px;opacity:.65;white-space:nowrap;
-    pointer-events:none;
+  .hand-block{
+    display:flex;gap:8px;
+    align-items:center;
+    justify-content:center;
   }
+  .hand-block.decided{padding:4px 4px;border-radius:10px;}
+  .hand-block.pool{padding:4px 4px;border-radius:10px;}
+  .hand-block.roles{padding:4px 4px;border-radius:10px;}
 
-  /* ★ 手札ドラッグ中のゴースト */
-  .hand-drag-ghost{
-    position:fixed;
-    width:64px;height:96px;
-    border-radius:10px;
-    border:1px solid rgba(0,0,0,.18);
-    background:#fff;
-    box-shadow:0 16px 32px rgba(0,0,0,.22);
+  .my-card{
+    width:60px;height:40px;border-radius:8px;border:1px solid #ddd;background:#fff;
     display:flex;align-items:center;justify-content:center;
-    font-size:24px;font-weight:800;
-    transform:translate(-50%,-50%);
-    z-index:9999;
-    pointer-events:none;
-    opacity:.95;
+    font-size:20px;font-weight:700;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+    user-select:none;
+    cursor:pointer;
+    position:relative;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    padding:0 4px;
+    box-sizing:border-box;
+  }
+  .my-card.smalltxt{font-size:16px;}
+  .my-card.disabled{opacity:.55; cursor:default;}
+  .my-card.current{
+    outline:3px solid rgba(255,165,0,.75);
+    outline-offset:2px;
   }
 
-  /* ★ 追い出し確認 */
+  @keyframes pulseCard{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.08);}
+    100%{transform:scale(1);}
+  }
+  .my-card.undecided{
+    animation:pulseCard .85s ease-in-out infinite;
+  }
+
+  .pool-wrap{
+    display:flex;gap:8px;align-items:center;justify-content:center;
+    transform:translateX(0);
+    opacity:1;
+    transition:transform .45s ease, opacity .45s ease;
+    will-change:transform, opacity;
+  }
+  .pool-wrap.passing-out{
+    transform:translateX(110px);
+    opacity:0;
+  }
+
+  @keyframes incomingFromLeft{
+    0%{transform:translateX(-120px); opacity:0;}
+    100%{transform:translateX(0); opacity:1;}
+  }
+  .pool-wrap.incoming{
+    animation:incomingFromLeft .45s ease both;
+  }
+
+  .role-card-big{
+    width:64px;height:90px;border-radius:10px;border:1px solid #ddd;
+    background:linear-gradient(135deg,#f8fafc,#eef2ff);
+    box-shadow:0 6px 16px rgba(0,0,0,.12);
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:900;color:#111;
+    padding:6px;
+    text-align:center;
+    user-select:none;
+    position:relative;
+    box-sizing:border-box;
+  }
+
+  /* ★順カード小のとき：正体カードを左に“重ねる” */
+  .role-card-big.overlap-left{
+    margin-right:-26px;   /* 重ねる量（調整可） */
+    z-index:3;            /* order-smallより前 */
+  }
+  .order-card-small{position:relative; z-index:2;}
+
+  /* ★順カード拡大時：正体カードを画面中央の順カード左に固定表示（さらに大きく） */
+  .role-float{
+    position:fixed;
+    --rfw: 96px;  /* ★大きいときの正体カード幅 */
+    --rfh: 136px; /* ★大きいときの正体カード高 */
+    width:var(--rfw);
+    height:var(--rfh);
+    left:calc(50% - 260px/2 - 16px - var(--rfw)); /* 順カード(260)の左に16px */
+    top:50%;
+    transform:translateY(-50%);
+    z-index:621;
+    pointer-events:none;
+    border-radius:14px;
+    font-size:14px;
+    box-shadow:0 12px 26px rgba(0,0,0,.18);
+  }
+
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
     display:flex;align-items:center;justify-content:center;z-index:300;
@@ -273,7 +240,6 @@
   .dialog-box p{margin:0 0 12px;font-size:14px;line-height:1.6;}
   .dialog-buttons{display:flex;justify-content:flex-end;gap:8px;}
 
-  /* ★ ホスト用 設定ボタン */
   .host-settings-btn{
     position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:50%;
     border:1px solid #ddd;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);
@@ -281,7 +247,6 @@
   }
   .host-settings-btn.visible{display:flex;}
 
-  /* ★ 設定ポップ */
   .start-pop{
     position:fixed;right:16px;bottom:72px;background:#fff;border:1px solid #ddd;border-radius:12px;
     box-shadow:0 12px 28px rgba(0,0,0,.16);padding:10px 12px;z-index:240;min-width:260px;
@@ -293,15 +258,12 @@
   .start-pop-main{font-size:13px;line-height:1.5;}
   .start-pop-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px;flex-wrap:wrap;}
 
-  /* 詳細情報消す用 */
   #roomInfoLobby, #lobby h2, #lobby p {display:none;}
   #lobby.entered{
-    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
     min-height:calc(100vh - 60px);
-    gap:6px;
   }
 
-  /* ★ 左下「？」 */
   .help-btn{
     position:fixed;left:16px;bottom:16px;width:44px;height:44px;border-radius:50%;
     border:1px solid #111;background:#111;color:#fff;
@@ -311,7 +273,6 @@
   }
   .help-btn.visible{display:flex;}
 
-  /* ★ ヘルプ一覧ポップ */
   .help-pop-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
     display:flex;align-items:flex-end;justify-content:center;
@@ -342,21 +303,200 @@
     flex:0 0 auto;
     display:flex;align-items:center;justify-content:center;
     font-size:12px;font-weight:700;color:#444;
+    text-align:center;padding:6px;
   }
   .role-desc{flex:1 1 auto;}
   .role-desc .name{font-weight:900;margin-bottom:4px;}
   .role-desc .text{font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap;}
 
-  .toast{
-    position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
-    background:rgba(20,20,20,.92);color:#fff;
-    padding:10px 14px;border-radius:999px;
-    box-shadow:0 18px 40px rgba(0,0,0,.35);
-    z-index:330;font-weight:700;font-size:13px;
-    opacity:0; pointer-events:none;
-    transition:opacity .15s ease;
+  /* =========================================================
+     ★ 追加：順カード（大/小）UI
+     ========================================================= */
+
+  .order-big{
+    position:fixed;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    z-index:520;
+    pointer-events:auto;
   }
-  .toast.show{opacity:1;}
+  .order-big.hidden{display:none;}
+
+  .order-card-big{
+    width:260px; height:360px;
+    border-radius:18px;
+    border:1px solid rgba(0,0,0,.12);
+    background:linear-gradient(135deg,#ffffff,#f2f5ff);
+    box-shadow:0 22px 60px rgba(0,0,0,.30);
+    position:relative;
+    overflow:visible;
+    user-select:none;
+  }
+  .order-card-big::after{
+    content:'順カード';
+    position:absolute;
+    right:10px; top:10px;
+    font-weight:900;
+    font-size:14px;
+    opacity:.55;
+    letter-spacing:.08em;
+  }
+
+  .order-hint{
+    position:absolute;
+    left:12px; right:12px;
+    bottom:10px;
+    font-size:12px;
+    opacity:.65;
+    line-height:1.35;
+    text-align:center;
+    pointer-events:none;
+  }
+
+  .order-slot-col{
+    position:absolute;
+    right:0;
+    left:auto;
+    top:54px;
+    bottom:44px;
+    width:88px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-end;
+    padding-right:10px;
+  }
+
+  /* ★点線枠：SVGで「上→左→下」の一本線（右辺なし） */
+  .order-slot{
+    --slot-border: rgba(17,17,17,.22);
+    --slot-bw: 2px;
+
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    position:relative;
+    box-sizing:border-box;
+    overflow:visible;
+    background:rgba(255,255,255,.55);
+
+    border:none;
+  }
+
+  .order-slot.over{
+    --slot-border: rgba(255,165,0,.78);
+    background:rgba(255,165,0,.10);
+  }
+
+  .order-slot .slot-border{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+  }
+  .order-slot .slot-border .border-path{
+    stroke: var(--slot-border);
+    stroke-width: var(--slot-bw);
+    stroke-dasharray: 7 7;
+    fill:none;
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+    stroke-linecap: butt;
+  }
+
+  .order-in-slot{
+    position:absolute;
+    right:-40px;
+    left:auto;
+    top:50%;
+    transform:translateY(-50%);
+    width:80px;
+    height:44px;
+    border-radius:12px;
+    border:1px solid rgba(0,0,0,.18);
+    background:#fff;
+    box-shadow:0 10px 24px rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:16px;
+    padding:0 6px;
+    box-sizing:border-box;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    cursor:grab;
+  }
+  .order-in-slot:active{cursor:grabbing;}
+
+  /* ★順カード小：縦幅を正体カード(90px)より高くする */
+  .order-card-small{
+    width:96px;
+    height:104px; /* ★ここを増やした（正体カードより高い） */
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,.12);
+    background:linear-gradient(135deg,#ffffff,#f2f5ff);
+    box-shadow:0 10px 22px rgba(0,0,0,.14);
+    position:relative;
+    overflow:visible;
+    cursor:pointer;
+    user-select:none;
+  }
+  .order-card-small::after{
+    content:'順';
+    position:absolute;
+    right:8px; top:6px;
+    font-weight:900;
+    font-size:12px;
+    opacity:.55;
+  }
+
+  .order-slot-col.small{
+    top:12px; bottom:12px;
+    width:52px;
+    padding-right:8px;
+    padding-left:0;
+    gap:6px;
+    right:0; left:auto;
+    align-items:flex-end;
+  }
+
+  .order-slot.small{
+    --slot-bw: 1px;
+
+    width:26px;
+    height:14px;
+    border-radius:8px;
+
+    position:relative;
+    box-sizing:border-box;
+    overflow:visible;
+    background:rgba(255,255,255,.55);
+
+    border:none;
+  }
+  .order-slot.small .slot-border .border-path{
+    stroke-dasharray: 4 4;
+  }
+
+  .order-in-slot.small{
+    right:-26px;
+    left:auto;
+    width:52px;
+    height:14px;
+    border-radius:8px;
+    font-size:9px;
+    box-shadow:0 6px 14px rgba(0,0,0,.16);
+    padding:0 3px;
+  }
+
+  .hand-block.decided.drop-over{
+    outline:2px dashed rgba(255,165,0,.65);
+    outline-offset:4px;
+    border-radius:12px;
+  }
 </style>
 </head>
 <body>
@@ -381,12 +521,7 @@
     <div id="roomInfoLobby" style="margin-bottom:8px;"></div>
     <p>ここにテーブルや情報が表示されます。</p>
 
-    <div class="table-area" id="tableArea">
-      <div id="playerCircle" class="player-circle"></div>
-      <div class="plaza-wrap">
-        <div id="plaza" class="plaza" aria-label="広場"></div>
-      </div>
-    </div>
+    <div id="playerCircle" class="player-circle"></div>
 
     <div class="my-hand-wrapper">
       <div class="my-hand-title">自分のカード</div>
@@ -415,6 +550,7 @@
 </div>
 
 <button id="hostSettingsBtn" class="host-settings-btn" title="設定">⚙</button>
+
 <button id="helpBtn" class="help-btn" title="正体カード一覧">？</button>
 
 <div id="helpBackdrop" class="help-pop-backdrop hidden">
@@ -433,9 +569,9 @@
     <button id="btnStartPopClose" class="btn ghost" style="padding:2px 6px;font-size:12px;">×</button>
   </div>
   <div class="start-pop-main">
-    「スタート」で全プレイヤーにカードを配布（1〜100を1枚）＋お題カードを表示。<br>
-    自分のカードを広場にドラッグすると、全員が動かせるカードになります。<br>
-    表にするのは「ダブルクリック」です（ポップ無し）。
+    「スタート」で全プレイヤーに<br>
+    役職カード1枚 + 手札カード5枚（ドラフト開始）を配布。<br>
+    「リセット」で人数選択へ戻します（内容は後で）。
   </div>
   <div class="start-pop-actions">
     <button id="btnResetRoom" class="btn ghost">リセット</button>
@@ -443,16 +579,19 @@
   </div>
 </div>
 
-<div id="toast" class="toast">ダブルクリックで表になります</div>
+<div id="orderBig" class="order-big hidden" aria-label="順カード（並び替え）">
+  <div id="orderBigCard" class="order-card-big">
+    <div id="orderSlotsBig" class="order-slot-col"></div>
+    <div class="order-hint">下の「決定カード」からドラッグして右側の5枠へ。<br>枠内でドラッグして並び替えもできます。</div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getDatabase, ref, set, get, update, onValue, remove, runTransaction
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAMeKfMoHt9qOQ2VuUBpkrKuei7yGBbEi8",
+  apiKey: "AIzaSyAMeKfMoHt9qO2VuUBpkrKuei7yGBbEi8",
   authDomain: "cheesetheft-fd52f.firebaseapp.com",
   databaseURL: "https://cheesetheft-fd52f-default-rtdb.firebaseio.com",
   projectId: "cheesetheft-fd52f",
@@ -468,6 +607,12 @@ const db  = getDatabase(app);
 const savedUserId = sessionStorage.getItem('bbUserId') || crypto.randomUUID();
 sessionStorage.setItem('bbUserId', savedUserId);
 
+const ROLE_CARDS = ["医者","先生","カブトムシ","飛行機","ドラキュラ"];
+const HAND_DECK = [
+  "aa","bb","cc","dd","ee","ff","gg","hh","ii","jj","kk","ll","mm","oo","pp","qq","rr","ss","tt","uu",
+  "vv","ww","zz","ab","zc","rg","jy","4r","qw","jy","id","hg","kj","er","yh","gf","zx","mj"
+];
+
 const state = {
   userId: savedUserId,
   userName: null,
@@ -475,12 +620,19 @@ const state = {
   seatedTable: null,
   isHost: false,
   hands: {},
-  crystals: {},
-  fieldCards: {},
   room: {},
-  roomSeed: null,
-  revealStarted: false,
-  topic: null
+  draft: null,
+  _lastIncomingToken: null,
+  _lastPassToken: null,
+  order: {
+    decidedKey: null,
+    decidedObjs: [],
+    slots: Array(5).fill(null),
+    completed: false,
+    open: false,
+    _autoOpenedOnce: false,
+    dragging: null,
+  }
 };
 
 const mainEl = document.getElementById('main');
@@ -501,7 +653,6 @@ const seatLabel = seatPop.querySelector('label');
 
 const playerCircle = document.getElementById('playerCircle');
 const myHandEl = document.getElementById('myHand');
-const plazaEl = document.getElementById('plaza');
 
 const kickDialog = document.getElementById('kickDialog');
 const kickMessage = document.getElementById('kickMessage');
@@ -519,31 +670,49 @@ const helpBackdrop = document.getElementById('helpBackdrop');
 const btnHelpClose = document.getElementById('btnHelpClose');
 const helpBody = document.getElementById('helpBody');
 
-const toast = document.getElementById('toast');
+const ROLE_HELP = ROLE_CARDS.map(n => ({ name:n, text:"（説明は後で追加）" }));
 
-const ROLE_HELP = [
-  { name: "カード1", text: "ああああ" },
-  { name: "カード2", text: "いいいい" },
-  { name: "カード3", text: "うううう" },
-  { name: "カード4", text: "うううう" },
-];
+const orderBigWrap = document.getElementById('orderBig');
+const orderSlotsBig = document.getElementById('orderSlotsBig');
+const orderBigCard = document.getElementById('orderBigCard');
 
-function showToast(msg){
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(()=>toast.classList.remove('show'), 1200);
+/* =========================
+   ★追加：点線SVGを注入（右辺なし＝一本線）
+   ========================= */
+function injectSlotBorder(slotEl){
+  if (slotEl.querySelector('.slot-border')) return;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.classList.add('slot-border');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  const path = document.createElementNS(svgNS, 'path');
+  path.classList.add('border-path');
+
+  path.setAttribute('d', 'M 99 1 H 19 A 18 18 0 0 0 1 19 V 81 A 18 18 0 0 0 19 99 H 99');
+
+  svg.appendChild(path);
+  slotEl.appendChild(svg);
+}
+
+/* =========================
+   ★重要：bodyに残った「中央固定の正体カード」を毎回掃除
+   ========================= */
+function cleanupFloatingRole(){
+  document.querySelectorAll('.role-float').forEach(el => el.remove());
 }
 
 function renderHelpList(){
   helpBody.innerHTML = '';
-  ROLE_HELP.forEach((r, idx) => {
+  ROLE_HELP.forEach((r) => {
     const row = document.createElement('div');
     row.className = 'role-row';
 
     const card = document.createElement('div');
     card.className = 'role-card';
-    card.textContent = `CARD ${idx+1}`;
+    card.textContent = r.name;
 
     const desc = document.createElement('div');
     desc.className = 'role-desc';
@@ -566,420 +735,41 @@ let pendingSeatIndexToSteal = null;
 let pendingSeatPlayerIdToSteal = null;
 let isRenderingSeatTabs = false;
 let latestPlayers = [];
+let hostPassTimer = null;
 
-/* =========================
-   クリスタル系
-   ========================= */
-function fnv1a32(str){
-  let h = 0x811c9dc5;
-  for (let i=0;i<str.length;i++){
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-function mulberry32(seed){
-  let a = seed >>> 0;
-  return function(){
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function clamp01(v){ return Math.max(0, Math.min(1, v)); }
-function hexToRgb(hex){
-  const s = hex.replace('#','').trim();
-  const v = s.length===3 ? s.split('').map(c=>c+c).join('') : s;
-  const n = parseInt(v, 16);
-  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
-}
-function rgbToHex({r,g,b}){
-  const to = (x)=>x.toString(16).padStart(2,'0');
-  return `#${to(r)}${to(g)}${to(b)}`;
-}
-function mix(c1, c2, t){
-  const a = hexToRgb(c1), b = hexToRgb(c2);
-  const r = Math.round(a.r + (b.r-a.r)*t);
-  const g = Math.round(a.g + (b.g-a.g)*t);
-  const b2 = Math.round(a.b + (b.b-a.b)*t);
-  return '#' + [r,g,b2].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-function hslToRgb(h, s, l){
-  s/=100; l/=100;
-  const k = n => (n + h/30) % 12;
-  const a = s * Math.min(l, 1-l);
-  const f = n => l - a * Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
-  return { r:Math.round(255*f(0)), g:Math.round(255*f(8)), b:Math.round(255*f(4)) };
-}
-function paletteFromSeed(seed, n=20){
-  const rnd = mulberry32(seed ^ 0xA53C9E37);
-  const offset = rnd()*360;
-  const sat = 78, light = 55;
-  const arr = [];
-  for(let i=0;i<n;i++){
-    const h = (offset + (360/n)*i) % 360;
-    const rgb = hslToRgb(h, sat, light);
-    arr.push('#' + [rgb.r,rgb.g,rgb.b].map(x=>x.toString(16).padStart(2,'0')).join(''));
-  }
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(rnd()*(i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
-  }
-  return arr;
-}
-
-let svgUid = 0;
-function crystalSVG(spec, size=18){
-  if(!spec || !spec.color || !spec.seed){
-    return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="10" fill="#ddd"/></svg>`;
-  }
-  const uid = (++svgUid);
-  const idBase  = `base_${spec.seed}_${uid}`;
-  const idShade = `shade_${spec.seed}_${uid}`;
-  const idHi    = `hi_${spec.seed}_${uid}`;
-
-  const base = spec.color;
-  const c1 = mix(base, "#ffffff", 0.72);
-  const c2 = mix(base, "#ffffff", 0.10);
-  const c3 = mix(base, "#000000", 0.62);
-
-  const rnd = mulberry32(spec.seed);
-  const cx = 32, cy = 32;
-  const ptsN = 8;
-  const pts = [];
-  for(let i=0;i<ptsN;i++){
-    const ang = (-90 + (360/ptsN)*i) * Math.PI/180;
-    const rad = 24 + rnd()*8;
-    const jx = (rnd()-0.5)*4, jy = (rnd()-0.5)*4;
-    const x = cx + Math.cos(ang)*rad + jx;
-    const y = cy + Math.sin(ang)*rad + jy;
-    pts.push([x,y]);
-  }
-  const d = `M ${pts.map(p=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L ')} Z`;
-
-  const i1 = 1 + Math.floor(rnd()*2);
-  const i2 = i1 + 2;
-  const i3 = i2 + 2;
-  const p1 = pts[i1%ptsN], p2 = pts[i2%ptsN], p3 = pts[i3%ptsN];
-  const mid = [(p2[0]+cx)/2, (p2[1]+cy)/2];
-  const shadeD = `M ${p1[0].toFixed(1)} ${p1[1].toFixed(1)} L ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} L ${p3[0].toFixed(1)} ${p3[1].toFixed(1)} L ${mid[0].toFixed(1)} ${mid[1].toFixed(1)} Z`;
-
-  const hx = 18 + rnd()*6;
-  const hy = 14 + rnd()*6;
-  const hiD = `
-    M ${hx.toFixed(1)} ${hy.toFixed(1)}
-    C ${(hx-6).toFixed(1)} ${(hy+10).toFixed(1)} ${(hx-2).toFixed(1)} ${(hy+20).toFixed(1)} ${(hx+2).toFixed(1)} ${(hy+26).toFixed(1)}
-    C ${(hx+6).toFixed(1)} ${(hy+34).toFixed(1)} ${(hx+3).toFixed(1)} ${(hy+40).toFixed(1)} ${(hx-2).toFixed(1)} ${(hy+44).toFixed(1)}
-    C ${(hx-4).toFixed(1)} ${(hy+48).toFixed(1)} ${(hx+2).toFixed(1)} ${(hy+50).toFixed(1)} ${(hx+8).toFixed(1)} ${(hy+48).toFixed(1)}
-    C ${(hx+16).toFixed(1)} ${(hy+44).toFixed(1)} ${(hx+14).toFixed(1)} ${(hy+34).toFixed(1)} ${(hx+12).toFixed(1)} ${(hy+26).toFixed(1)}
-    C ${(hx+10).toFixed(1)} ${(hy+18).toFixed(1)} ${(hx+14).toFixed(1)} ${(hy+12).toFixed(1)} ${(hx+12).toFixed(1)} ${(hy+8).toFixed(1)}
-    C ${(hx+10).toFixed(1)} ${(hy+4).toFixed(1)} ${(hx+4).toFixed(1)} ${(hy+4).toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)} Z
-  `;
-
-  return `
-  <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
-    <defs>
-      <linearGradient id="${idBase}" x1="14" y1="8" x2="50" y2="58" gradientUnits="userSpaceOnUse">
-        <stop offset="0"   stop-color="${c1}" stop-opacity=".95"/>
-        <stop offset=".6"  stop-color="${c2}" stop-opacity=".42"/>
-        <stop offset="1"   stop-color="${c3}" stop-opacity=".16"/>
-      </linearGradient>
-      <linearGradient id="${idShade}" x1="42" y1="18" x2="28" y2="58" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stop-color="${c3}" stop-opacity=".20"/>
-        <stop offset="1" stop-color="${c3}" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="${idHi}" x1="22" y1="14" x2="32" y2="46" gradientUnits="userSpaceOnUse">
-        <stop offset="0" stop-color="#ffffff" stop-opacity=".78"/>
-        <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-      </linearGradient>
-    </defs>
-
-    <path d="${d}"
-      fill="url(#${idBase})"
-      stroke="${mix(base, "#ffffff", 0.55)}" stroke-opacity=".55" stroke-width="1.6"
-      stroke-linejoin="round"/>
-    <path d="${shadeD}" fill="url(#${idShade})"/>
-    <path d="${hiD}" fill="url(#${idHi})" opacity=".92"/>
-  </svg>`;
-}
-
-function cryptoUint32(){
-  const u = new Uint32Array(1);
-  crypto.getRandomValues(u);
-  return u[0] >>> 0;
-}
-
-async function ensureRoomSeed(){
-  if(!state.roomCode) return null;
-  const seedRef = ref(db, `rooms/${state.roomCode}/seed`);
-  const res = await runTransaction(seedRef, (cur) => {
-    if (cur === null || cur === undefined) return cryptoUint32() || 123456789;
-    return cur;
-  });
-  state.roomSeed = (res && res.snapshot) ? (res.snapshot.val() >>> 0) : state.roomSeed;
-  return state.roomSeed;
-}
-
-async function ensureCrystalForPlayer(playerId){
-  if(!state.roomCode) return;
-  const seed = state.roomSeed ?? await ensureRoomSeed();
-  if(seed == null) return;
-
-  const palette = paletteFromSeed(seed, 20);
-  const crystalsRef = ref(db, `rooms/${state.roomCode}/crystals`);
-
-  await runTransaction(crystalsRef, (cur) => {
-    cur = cur || {};
-    if (cur[playerId]) return cur;
-
-    const used = new Set(
-      Object.values(cur)
-        .filter(v => v && typeof v === 'object' && v.color)
-        .map(v => v.color)
-    );
-    const color = palette.find(c => !used.has(c)) || palette[0];
-    cur[playerId] = { color, seed: fnv1a32(`${seed}:${playerId}`) };
-    return cur;
-  });
-}
-
-/* =========================
-   提出人数チェック
-   ========================= */
-function expectedPlayerIds(){
-  return (latestPlayers || []).map(p=>p.id).filter(Boolean);
-}
-function allSubmitted(){
-  const ids = expectedPlayerIds();
-  if(!ids.length) return false;
-  return ids.every(id => !!state.fieldCards?.[id]);
-}
-
-/* =========================
-   お題
-   ========================= */
-const TOPIC_POOL = ["ああ","いい","うう","ええ","おお"];
-function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-function renderTopic(){
-  const old = plazaEl.querySelector('.topic-card');
-  if(old) old.remove();
-  if(!state.topic || !state.topic.text) return;
-
-  const t = document.createElement('div');
-  t.className = 'topic-card';
-  t.textContent = String(state.topic.text);
-  plazaEl.appendChild(t);
-}
-
-/* =========================
-   広場カード
-   ========================= */
-let localDraggingFieldId = null;
-let fieldDragOffset = {dx:0, dy:0};
-let rafPending = false;
-let pendingFieldXY = null;
-
-function plazaRect(){ return plazaEl.getBoundingClientRect(); }
-function setFieldCardElPos(el, x, y){
-  el.style.left = `${(x*100).toFixed(3)}%`;
-  el.style.top  = `${(y*100).toFixed(3)}%`;
-}
-
-function renderFieldCards(){
-  plazaEl.innerHTML = '';
-  renderTopic();
-
-  const entries = Object.values(state.fieldCards || {});
-  entries.sort((a,b)=>(a?.z||0)-(b?.z||0));
-
-  for(const fc of entries){
-    if(!fc) continue;
-
-    const el = document.createElement('div');
-    el.className = 'field-card';
-    el.dataset.id = fc.ownerId;
-
-    const faceUp = !!fc.faceUp;
-    if(faceUp){
-      el.textContent = String(fc.value ?? '');
-    }else{
-      el.textContent = '';
-      el.classList.add('back');
-    }
-
-    const x = clamp01(Number(fc.x ?? 0.5));
-    const y = clamp01(Number(fc.y ?? 0.5));
-    setFieldCardElPos(el, x, y);
-    el.style.zIndex = String(fc.z ?? 1);
-
-    const spec = state.crystals?.[fc.ownerId];
-    const c = document.createElement('div');
-    c.className = 'card-crystal';
-    c.innerHTML = crystalSVG(spec, 18);
-    el.appendChild(c);
-
-    el.addEventListener('pointerdown', (e) => {
-      if(!state.roomCode) return;
-
-      localDraggingFieldId = fc.ownerId;
-
-      const r = plazaRect();
-      const px = r.left + x * r.width;
-      const py = r.top  + y * r.height;
-      fieldDragOffset.dx = e.clientX - px;
-      fieldDragOffset.dy = e.clientY - py;
-
-      el.setPointerCapture(e.pointerId);
-      update(ref(db, `rooms/${state.roomCode}/fieldCards/${fc.ownerId}`), { z: Date.now() });
-    });
-
-    el.addEventListener('pointermove', (e) => {
-      if(localDraggingFieldId !== fc.ownerId) return;
-      const r = plazaRect();
-      const nx = clamp01((e.clientX - r.left - fieldDragOffset.dx) / r.width);
-      const ny = clamp01((e.clientY - r.top  - fieldDragOffset.dy) / r.height);
-
-      setFieldCardElPos(el, nx, ny);
-
-      pendingFieldXY = { id: fc.ownerId, x: nx, y: ny };
-      if(!rafPending){
-        rafPending = true;
-        requestAnimationFrame(() => {
-          rafPending = false;
-          if(!pendingFieldXY || !state.roomCode) return;
-          const p = pendingFieldXY;
-          pendingFieldXY = null;
-          update(ref(db, `rooms/${state.roomCode}/fieldCards/${p.id}`), { x: p.x, y: p.y });
-        });
-      }
-    });
-
-    el.addEventListener('pointerup', (e) => {
-      if(localDraggingFieldId !== fc.ownerId) return;
-      localDraggingFieldId = null;
-      try{ el.releasePointerCapture(e.pointerId); }catch{}
-    });
-    el.addEventListener('pointercancel', () => {
-      if(localDraggingFieldId === fc.ownerId) localDraggingFieldId = null;
-    });
-
-    el.addEventListener('dblclick', async () => {
-      if(!state.roomCode) return;
-      if(!allSubmitted()) return;
-      if(fc.faceUp) return;
-      await revealCard(fc.ownerId);
-    });
-
-    plazaEl.appendChild(el);
-  }
-}
-
-async function revealCard(cardId){
-  const cardRef = ref(db, `rooms/${state.roomCode}/fieldCards/${cardId}`);
-  await update(ref(db, `rooms/${state.roomCode}`), { revealStarted: true });
-  await update(cardRef, { faceUp: true });
-}
-
-/* =========================
-   手札→広場ドラッグ
-   ========================= */
-let handDrag = null;
-
-function createHandGhost(value){
-  const g = document.createElement('div');
-  g.className = 'hand-drag-ghost';
-  g.textContent = String(value);
-  document.body.appendChild(g);
-  return g;
-}
-function moveHandGhost(e){
-  if(!handDrag || !handDrag.ghost) return;
-  const cx = e.clientX - handDrag.offX;
-  const cy = e.clientY - handDrag.offY;
-  handDrag.ghost.style.left = `${cx}px`;
-  handDrag.ghost.style.top  = `${cy}px`;
-}
-function startHandDrag(cardEl, value, e){
-  if(!state.roomCode) return;
-  const r = cardEl.getBoundingClientRect();
-  handDrag = {
-    el: cardEl,
-    value,
-    offX: e.clientX - (r.left + r.width/2),
-    offY: e.clientY - (r.top  + r.height/2),
-    ghost: createHandGhost(value),
-  };
-  moveHandGhost(e);
-  cardEl.setPointerCapture(e.pointerId);
-  cardEl.style.opacity = '0.25';
-}
-function moveHandDrag(e){
-  if(!handDrag) return;
-  moveHandGhost(e);
-}
-async function endHandDrag(e){
-  if(!handDrag) return;
-
-  const value = handDrag.value;
-  const el = handDrag.el;
-
-  const dropX = e.clientX - handDrag.offX;
-  const dropY = e.clientY - handDrag.offY;
-
-  el.style.opacity = '';
-  try{ el.releasePointerCapture(e.pointerId); }catch{}
-
-  if(handDrag.ghost) handDrag.ghost.remove();
-
-  const r = plazaRect();
-  const inside = (dropX >= r.left && dropX <= r.right && dropY >= r.top && dropY <= r.bottom);
-
-  if(inside && state.roomCode){
-    const x = clamp01((dropX - r.left) / r.width);
-    const y = clamp01((dropY - r.top ) / r.height);
-
-    const fcRef = ref(db, `rooms/${state.roomCode}/fieldCards/${state.userId}`);
-
-    await Promise.all([
-      set(fcRef, {
-        ownerId: state.userId,
-        value,
-        x, y,
-        z: Date.now(),
-        faceUp: false
-      }),
-      remove(ref(db, `rooms/${state.roomCode}/hands/${state.userId}`))
-    ]);
-  }
-
-  handDrag = null;
-}
-
-/* =========================
-   既存ロジック
-   ========================= */
 function generateRoomCode(length = 6){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
   for(let i=0;i<length;i++) code += chars.charAt(Math.floor(Math.random()*chars.length));
   return code;
 }
-
-async function restoreSeatFromDB(){
-  if (!state.roomCode) return;
-  const tablesRef = ref(db, `rooms/${state.roomCode}/tables`);
-  const snap = await get(tablesRef);
-  const data = snap.val() || {};
-  let mySeatIndex = null;
-
-  for (const [seatIndex, t] of Object.entries(data)) {
-    if (t && t.playerId === state.userId) {
-      mySeatIndex = Number(seatIndex);
-      break;
-    }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
   }
-  if (mySeatIndex !== null) state.seatedTable = mySeatIndex;
+  return a;
+}
+function sampleWithoutReplacement(arr, k){ return shuffle(arr).slice(0, Math.min(k, arr.length)); }
+function dealPool5(){
+  const out = [];
+  for(let i=0;i<5;i++) out.push(HAND_DECK[Math.floor(Math.random()*HAND_DECK.length)]);
+  return out;
+}
+function makeRoleListForN(n){
+  if (n <= 0) return [];
+  if (n % 2 === 0){
+    const needPairs = n/2;
+    const roles = sampleWithoutReplacement(ROLE_CARDS, needPairs);
+    return shuffle(roles.flatMap(r => [r,r]));
+  } else {
+    const needPairs = (n-1)/2;
+    const pairRoles = sampleWithoutReplacement(ROLE_CARDS, needPairs);
+    const remaining = ROLE_CARDS.filter(r => !pairRoles.includes(r));
+    const single = remaining.length ? remaining[Math.floor(Math.random()*remaining.length)] : null;
+    return shuffle(pairRoles.flatMap(r => [r,r]).concat(single ? [single] : []));
+  }
 }
 
 function refreshRoomLabels(){
@@ -991,12 +781,8 @@ function refreshRoomLabels(){
 }
 function updateHostUI(){
   refreshRoomLabels();
-  if (state.isHost){
-    hostSettingsBtn.classList.add('visible');
-  } else {
-    hostSettingsBtn.classList.remove('visible');
-    startPop.classList.add('hidden');
-  }
+  if (state.isHost) hostSettingsBtn.classList.add('visible');
+  else { hostSettingsBtn.classList.remove('visible'); startPop.classList.add('hidden'); }
   helpBtn.classList.add('visible');
 }
 
@@ -1006,14 +792,7 @@ function subscribeRoom(){
     state.room = snap.val() || {};
     const waiting = (!state.isHost && !state.room.maxPlayers);
     hostSelectingPop.classList.toggle('hidden', !waiting);
-    state.revealStarted = !!state.room.revealStarted;
-
-    state.topic = state.room.topic || null;
-
-    if(state.revealStarted) showToast('ダブルクリックで表になります');
-
     syncSeatUI();
-    renderFieldCards();
   });
 }
 function subscribeHostState(){
@@ -1023,6 +802,7 @@ function subscribeHostState(){
     state.isHost = (hostId === state.userId);
     updateHostUI();
     syncSeatUI();
+    hostMaybeAdvanceDraft();
   });
 }
 function subscribeHands(){
@@ -1030,56 +810,519 @@ function subscribeHands(){
   onValue(handsRef, snap => {
     state.hands = snap.val() || {};
     renderHands();
+    hostMaybeAdvanceDraft();
   });
 }
-function subscribeCrystals(){
-  const cRef = ref(db, `rooms/${state.roomCode}/crystals`);
-  onValue(cRef, snap => {
-    state.crystals = snap.val() || {};
+function subscribeDraft(){
+  const draftRef = ref(db, `rooms/${state.roomCode}/draft`);
+  onValue(draftRef, snap => {
+    state.draft = snap.val() || null;
     renderHands();
+    hostMaybeAdvanceDraft();
   });
 }
-function subscribeFieldCards(){
-  const fRef = ref(db, `rooms/${state.roomCode}/fieldCards`);
-  onValue(fRef, snap => {
-    state.fieldCards = snap.val() || {};
-    renderFieldCards();
-    renderHands();
+
+function getSeatedPlayerIds(){ return latestPlayers.map(p => p.id); }
+function computeAllPicked(){
+  if (!state.draft || state.draft.phase !== 'draft') return false;
+  if (state.draft.status !== 'picking') return false;
+  const ids = getSeatedPlayerIds();
+  if (!ids.length) return false;
+  return ids.every(pid => {
+    const h = state.hands[pid];
+    return h && Number.isInteger(h.pickIdx);
   });
 }
+
+function fitCardText(el){
+  el.style.fontSize = '';
+  el.style.letterSpacing = '';
+  el.style.transform = '';
+
+  const cs = getComputedStyle(el);
+  const maxW = el.clientWidth - 8;
+  let size = parseFloat(cs.fontSize) || 16;
+
+  let guard = 0;
+  while (el.scrollWidth > maxW && size > 9 && guard < 50){
+    size -= 1;
+    el.style.fontSize = size + 'px';
+    guard++;
+  }
+  if (el.scrollWidth > maxW){
+    el.style.letterSpacing = '-0.03em';
+  }
+}
+function fitAllMyCards(){
+  myHandEl.querySelectorAll('.my-card').forEach(fitCardText);
+}
+
+function decidedKeyFromArray(arr){
+  return Array.isArray(arr) ? arr.join('||') : '';
+}
+
+function ensureOrderStateForMyHand(h){
+  const decided = Array.isArray(h?.decided) ? h.decided : [];
+  const draftDone = !!state.draft && state.draft.phase === 'done';
+
+  if (!draftDone || decided.length < 5){
+    state.order.decidedKey = null;
+    state.order.decidedObjs = [];
+    state.order.slots = Array(5).fill(null);
+    state.order.completed = false;
+    state.order.open = false;
+    state.order._autoOpenedOnce = false;
+    hideOrderBig();
+    return;
+  }
+
+  const key = decidedKeyFromArray(decided);
+  if (state.order.decidedKey !== key){
+    state.order.decidedKey = key;
+    state.order.decidedObjs = decided.slice(0,5).map((text, i) => ({ id:`d${i}`, text }));
+    const validIds = new Set(state.order.decidedObjs.map(o=>o.id));
+    state.order.slots = state.order.slots.map(cid => validIds.has(cid) ? cid : null);
+    state.order.completed = state.order.slots.every(v => v);
+    if (!state.order.completed && !state.order._autoOpenedOnce){
+      state.order._autoOpenedOnce = true;
+      showOrderBig();
+    }
+  }
+
+  if (!state.order.completed){
+    showOrderBig();
+  } else {
+    if (state.order.open) showOrderBig();
+    else hideOrderBig();
+  }
+}
+
+function cardTextById(cardId){
+  const o = state.order.decidedObjs.find(x => x.id === cardId);
+  return o ? o.text : '';
+}
+
+function showOrderBig(){
+  state.order.open = true;
+  orderBigWrap.classList.remove('hidden');
+  renderOrderBigSlots();
+}
+function hideOrderBig(){
+  orderBigWrap.classList.add('hidden');
+  cleanupFloatingRole(); /* ★中央に残る正体カードを即回収 */
+}
+function toggleOrderBig(){
+  if (!state.order.completed){
+    return;
+  }
+  state.order.open = !state.order.open;
+  if (state.order.open) showOrderBig();
+  else hideOrderBig();
+  renderMyHand();
+}
+
+function renderOrderBigSlots(){
+  orderSlotsBig.innerHTML = '';
+
+  for(let i=0;i<5;i++){
+    const slot = document.createElement('div');
+    slot.className = 'order-slot';
+    slot.dataset.idx = String(i);
+
+    injectSlotBorder(slot);
+
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      slot.classList.add('over');
+    });
+    slot.addEventListener('dragleave', () => slot.classList.remove('over'));
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('over');
+      const payload = safeParseDragPayload(e.dataTransfer?.getData('text/plain') || '');
+      if (!payload || payload.type !== 'orderCard' || !payload.cardId) return;
+
+      placeCardIntoSlot(payload.cardId, i, payload.fromSlotIdx);
+    });
+
+    const cid = state.order.slots[i];
+    if (cid){
+      const chip = document.createElement('div');
+      chip.className = 'order-in-slot';
+      chip.textContent = cardTextById(cid);
+      chip.draggable = true;
+
+      chip.addEventListener('dragstart', (e) => {
+        const data = JSON.stringify({ type:'orderCard', cardId: cid, fromSlotIdx: i });
+        e.dataTransfer?.setData('text/plain', data);
+        e.dataTransfer?.setData('text/uri-list', '');
+      });
+
+      slot.appendChild(chip);
+    }
+
+    orderSlotsBig.appendChild(slot);
+  }
+}
+
+function safeParseDragPayload(s){
+  try{
+    const o = JSON.parse(s);
+    return o && typeof o === 'object' ? o : null;
+  } catch {
+    return null;
+  }
+}
+
+function placeCardIntoSlot(cardId, toIdx, fromSlotIdx){
+  const existingIdx = state.order.slots.findIndex(x => x === cardId);
+  const originIdx = Number.isInteger(fromSlotIdx) ? fromSlotIdx : (existingIdx >= 0 ? existingIdx : null);
+  if (originIdx === toIdx) return;
+
+  const targetCard = state.order.slots[toIdx] || null;
+
+  if (originIdx !== null && originIdx >= 0){
+    state.order.slots[toIdx] = cardId;
+    state.order.slots[originIdx] = targetCard;
+  } else {
+    state.order.slots[toIdx] = cardId;
+    if (targetCard){
+      const empty = state.order.slots.findIndex(v => !v);
+      if (empty >= 0){
+        state.order.slots[empty] = targetCard;
+      } else {
+        const j = (toIdx === 4) ? 0 : 4;
+        if (j !== toIdx){
+          state.order.slots[j] = targetCard;
+        }
+      }
+    }
+  }
+
+  const done = state.order.slots.every(v => v);
+  state.order.completed = done;
+
+  if (done){
+    state.order.open = false;
+    hideOrderBig();
+  } else {
+    showOrderBig();
+  }
+
+  renderMyHand();
+}
+
+function removeCardFromSlots(cardId){
+  const idx = state.order.slots.findIndex(v => v === cardId);
+  if (idx >= 0){
+    state.order.slots[idx] = null;
+    state.order.completed = false;
+    showOrderBig();
+    renderMyHand();
+  }
+}
+
+orderBigCard.addEventListener('click', (e) => {
+  const slot = e.target.closest?.('.order-slot');
+  const chip = e.target.closest?.('.order-in-slot');
+  if (slot || chip) return;
+  toggleOrderBig();
+});
 
 function renderMyHand(){
+  /* ★毎回まず掃除：中央に残る正体カードをゼロにする */
+  cleanupFloatingRole();
+
   myHandEl.innerHTML = '';
   const myId = state.userId;
-  const handData = state.hands[myId];
-  if (!handData || typeof handData.card !== 'number') return;
+  const h = state.hands[myId];
+  if (!h){
+    hideOrderBig();
+    return;
+  }
 
-  const cardEl = document.createElement('div');
-  cardEl.className = 'my-card';
-  cardEl.textContent = String(handData.card);
+  ensureOrderStateForMyHand(h);
 
-  const hint = document.createElement('div');
-  hint.className = 'hint';
-  hint.textContent = '←広場にドラッグ';
-  cardEl.appendChild(hint);
+  const phaseDraft = !!state.draft && state.draft.phase === 'draft';
+  const draftDone  = !!state.draft && state.draft.phase === 'done';
+  const status = state.draft?.status || null;
 
-  cardEl.addEventListener('pointerdown', (e) => startHandDrag(cardEl, handData.card, e));
-  cardEl.addEventListener('pointermove', (e) => moveHandDrag(e));
-  cardEl.addEventListener('pointerup',   (e) => endHandDrag(e));
-  cardEl.addEventListener('pointercancel', () => {
-    if(handDrag && handDrag.el === cardEl){
-      cardEl.style.opacity = '';
-      if(handDrag.ghost) handDrag.ghost.remove();
-      handDrag = null;
+  const decided = Array.isArray(h.decided) ? h.decided : [];
+  const pool = Array.isArray(h.pool) ? h.pool : (Array.isArray(h.cards) ? h.cards : []);
+  const pickIdx = Number.isInteger(h.pickIdx) ? h.pickIdx : null;
+  const chosen = (pickIdx !== null && pool[pickIdx] != null) ? pool[pickIdx] : null;
+
+  const allPicked = computeAllPicked();
+  const canChange = phaseDraft && status === 'picking' && !allPicked;
+
+  const handArea = document.createElement('div');
+  handArea.className = 'hand-area';
+
+  /* =========================
+     ★正体カードの配置ロジック
+     - 順カード拡大中：画面中央の順カード左に固定（role-float / サイズ大）
+     - 順カード小：順カード小の左に重ねる（overlap-left / 通常サイズ）
+     ========================= */
+  const roleCard = document.createElement('div');
+  roleCard.className = 'role-card-big';
+  roleCard.textContent = h.role ? h.role : '（役職なし）';
+
+  const isOrderBigVisible = !orderBigWrap.classList.contains('hidden');
+  const isOrderSmallVisible = (draftDone && decided.length >= 5 && state.order.completed);
+
+  if (isOrderBigVisible){
+    roleCard.classList.add('role-float');
+    document.body.appendChild(roleCard);
+  }
+
+  let orderSmallBlock = null;
+  if (isOrderSmallVisible){
+    orderSmallBlock = document.createElement('div');
+    orderSmallBlock.className = 'hand-block';
+
+    const small = document.createElement('div');
+    small.className = 'order-card-small';
+    small.title = 'クリックで拡大して並び替え';
+
+    const col = document.createElement('div');
+    col.className = 'order-slot-col small';
+
+    for(let i=0;i<5;i++){
+      const slot = document.createElement('div');
+      slot.className = 'order-slot small';
+      injectSlotBorder(slot);
+
+      const cid = state.order.slots[i];
+      if (cid){
+        const chip = document.createElement('div');
+        chip.className = 'order-in-slot small';
+        chip.textContent = cardTextById(cid);
+        slot.appendChild(chip);
+      }
+      col.appendChild(slot);
     }
+    small.appendChild(col);
+
+    small.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showOrderBig();
+      renderMyHand();
+    });
+
+    if (!isOrderBigVisible){
+      const roleClone = document.createElement('div');
+      roleClone.className = 'role-card-big overlap-left';
+      roleClone.textContent = roleCard.textContent;
+      orderSmallBlock.appendChild(roleClone);
+    }
+
+    orderSmallBlock.appendChild(small);
+  }
+
+  if (!isOrderSmallVisible && !isOrderBigVisible){
+    const rolesBlock = document.createElement('div');
+    rolesBlock.className = 'hand-block roles';
+    rolesBlock.appendChild(roleCard);
+    handArea.appendChild(rolesBlock);
+  }
+
+  const decidedBlock = document.createElement('div');
+  decidedBlock.className = 'hand-block decided';
+
+  decidedBlock.addEventListener('dragover', (e) => {
+    const payload = safeParseDragPayload(e.dataTransfer?.getData('text/plain') || '');
+    if (!payload || payload.type !== 'orderCard') return;
+    e.preventDefault();
+    decidedBlock.classList.add('drop-over');
+  });
+  decidedBlock.addEventListener('dragleave', () => decidedBlock.classList.remove('drop-over'));
+  decidedBlock.addEventListener('drop', (e) => {
+    decidedBlock.classList.remove('drop-over');
+    const payload = safeParseDragPayload(e.dataTransfer?.getData('text/plain') || '');
+    if (!payload || payload.type !== 'orderCard' || !payload.cardId) return;
+    removeCardFromSlots(payload.cardId);
   });
 
-  myHandEl.appendChild(cardEl);
+  decided.forEach((v, i) => {
+    if (draftDone && decided.length >= 5){
+      const cardId = `d${i}`;
+      const alreadyPlaced = state.order.slots.includes(cardId);
+      if (alreadyPlaced) return;
+    }
+
+    const c = document.createElement('div');
+    c.className = 'my-card smalltxt disabled';
+    c.textContent = v;
+
+    if (draftDone && decided.length >= 5){
+      const cardId = `d${i}`;
+      c.classList.remove('disabled');
+      c.style.cursor = 'grab';
+      c.draggable = true;
+      c.title = 'ドラッグして順カードの枠へ';
+
+      c.addEventListener('dragstart', (e) => {
+        const data = JSON.stringify({ type:'orderCard', cardId, fromSlotIdx: null });
+        e.dataTransfer?.setData('text/plain', data);
+      });
+    }
+
+    decidedBlock.appendChild(c);
+  });
+
+  if (phaseDraft && chosen !== null){
+    const c = document.createElement('div');
+    c.className = 'my-card smalltxt current' + (canChange ? '' : ' disabled');
+    c.textContent = chosen;
+    if (canChange){
+      c.title = 'クリックで未選択に戻す';
+      c.addEventListener('click', async () => {
+        await update(ref(db, `rooms/${state.roomCode}/hands/${myId}`), { pickIdx: null });
+      });
+    }
+    decidedBlock.appendChild(c);
+  }
+
+  const poolBlock = document.createElement('div');
+  poolBlock.className = 'hand-block pool';
+
+  const poolWrap = document.createElement('div');
+  poolWrap.className = 'pool-wrap';
+
+  const passToken = state.draft?.passToken ?? null;
+  let shouldAnimatePass = false;
+  if (phaseDraft && status === 'passing' && passToken && state._lastPassToken !== passToken){
+    shouldAnimatePass = true;
+    state._lastPassToken = passToken;
+  } else if (phaseDraft && status === 'passing'){
+    poolWrap.classList.add('passing-out');
+  }
+
+  const incomingToken = state.draft?.incomingToken ?? null;
+  if (phaseDraft && status === 'picking' && incomingToken && state._lastIncomingToken !== incomingToken){
+    poolWrap.classList.add('incoming');
+    state._lastIncomingToken = incomingToken;
+    setTimeout(()=> poolWrap.classList.remove('incoming'), 480);
+  } else if (!phaseDraft){
+    state._lastIncomingToken = incomingToken;
+  }
+
+  pool.forEach((v, idx) => {
+    if (phaseDraft && chosen !== null && idx === pickIdx) return;
+    const c = document.createElement('div');
+    const isUndecidedPulse = phaseDraft && status === 'picking';
+    c.className = 'my-card smalltxt' + (isUndecidedPulse ? ' undecided' : '');
+    c.textContent = v;
+
+    if (!canChange){
+      c.classList.add('disabled');
+    } else {
+      c.title = 'クリックでこのカードを選ぶ（ドラフト）';
+      c.addEventListener('click', async () => {
+        await update(ref(db, `rooms/${state.roomCode}/hands/${myId}`), { pickIdx: idx });
+      });
+    }
+    poolWrap.appendChild(c);
+  });
+
+  poolBlock.appendChild(poolWrap);
+
+  if (orderSmallBlock) handArea.appendChild(orderSmallBlock);
+  handArea.appendChild(decidedBlock);
+  handArea.appendChild(poolBlock);
+
+  myHandEl.appendChild(handArea);
+
+  if (shouldAnimatePass){
+    requestAnimationFrame(() => poolWrap.classList.add('passing-out'));
+  }
+
+  requestAnimationFrame(() => fitAllMyCards());
+
+  if ((draftDone && decided.length >= 5) && (state.order.open || !state.order.completed)){
+    renderOrderBigSlots();
+  }
 }
+
 function renderHands(){
   renderMyHand();
   if (latestPlayers.length) renderPlayerCircle(latestPlayers);
-  renderFieldCards();
+}
+
+function renderPlayerCircle(players){
+  playerCircle.innerHTML = '';
+  if (!players.length) return;
+
+  const n = players.length;
+  const radius = 45;
+  const step = (2 * Math.PI) / n;
+  const anchorAngle = Math.PI / 2;
+  const meIndex = players.findIndex(p => p.id === state.userId);
+
+  const phaseDraft = !!state.draft && state.draft.phase === 'draft';
+  const status = state.draft?.status || null;
+
+  players.forEach((p, idx) => {
+    const k = (meIndex === -1) ? idx : (idx - meIndex + n) % n;
+    const angle = anchorAngle + step * k;
+
+    const x = 50 + radius * Math.cos(angle);
+    const y = 50 + radius * Math.sin(angle);
+
+    const tag = document.createElement('div');
+    tag.className = 'player-tag' + (p.id === state.userId ? ' me' : '');
+    tag.textContent = p.name;
+    tag.style.left = `${x}%`;
+    tag.style.top = `${y}%`;
+
+    const h = state.hands[p.id];
+    const picked = phaseDraft && status === 'picking' && h && Number.isInteger(h.pickIdx);
+    if (picked) tag.classList.add('picked');
+
+    tag.onclick = () => {
+      if (p.id === state.userId) return;
+      if (!state.roomCode) return;
+      if (state.seatedTable !== null) return;
+      pendingSeatIndexToSteal = p.seatIndex;
+      pendingSeatPlayerIdToSteal = p.id;
+      kickMessage.textContent = `「${p.name}」を追い出して、この席に着席しますか？`;
+      kickDialog.classList.remove('hidden');
+    };
+
+    if (p.id !== state.userId && h){
+      const decidedCount = Array.isArray(h.decided) ? h.decided.length : 0;
+
+      const row = document.createElement('div');
+      row.className = 'mini-hand-row';
+
+      const miniRole = document.createElement('div');
+      miniRole.className = 'mini-role-card';
+      miniRole.textContent = '正体';
+      row.appendChild(miniRole);
+
+      const miniHand = document.createElement('div');
+      miniHand.className = 'mini-hand';
+
+      const count = Math.min(5, decidedCount);
+      const spread = 70;
+      const base = (count > 1) ? (-spread/2) : 0;
+
+      for (let i=0;i<count;i++){
+        const card = document.createElement('div');
+        card.className = 'mini-card';
+        card.textContent = '';
+        const angleDeg = (count > 1) ? base + (spread/(count-1))*i : 0;
+        card.style.transform = `translate(-50%,0) rotate(${angleDeg}deg)`;
+        card.style.zIndex = String(10 + i);
+        miniHand.appendChild(card);
+      }
+
+      row.appendChild(miniHand);
+      tag.appendChild(row);
+    }
+
+    playerCircle.appendChild(tag);
+  });
 }
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -1106,7 +1349,6 @@ btnJoin.addEventListener('click', async () => {
     state.isHost = (roomData.hostId === state.userId);
   }
 
-  await ensureRoomSeed();
   updateHostUI();
 
   mainEl.classList.remove('prejoin');
@@ -1116,18 +1358,12 @@ btnJoin.addEventListener('click', async () => {
   lobby.classList.remove('hidden');
   lobby.classList.add('entered');
 
-  await restoreSeatFromDB();
-
   subscribeRoom();
   subscribeHostState();
   subscribePlayers();
   subscribeHands();
-  subscribeCrystals();
-  subscribeFieldCards();
+  subscribeDraft();
 
-  if(state.seatedTable !== null){
-    await ensureCrystalForPlayer(state.userId);
-  }
   syncSeatUI();
 });
 
@@ -1149,9 +1385,7 @@ copyLinkBtn.addEventListener('click', async () => {
 
 async function syncSeatUI(){
   if (!state.roomCode) return;
-
   const maxPlayers = state.room.maxPlayers || null;
-
   if (!state.isHost && !maxPlayers){
     seatPop.classList.add('hidden');
     return;
@@ -1179,22 +1413,18 @@ async function renderSeatTabs(){
 
     if(state.isHost && !maxPlayers){
       seatLabel.textContent = '人数を選択';
-
-      for(let i=2; i<=20; i++){
+      for(let i=2; i<=8; i++){
         const tab = document.createElement('div');
         tab.className = 'tab';
         tab.textContent = i;
 
         tab.onclick = async () => {
           await update(roomRef, { maxPlayers: i });
-
           const tRef = ref(db, `rooms/${state.roomCode}/tables/1`);
           await set(tRef, { playerId: state.userId, playerName: state.userName });
 
           state.seatedTable = 1;
           seatPop.classList.add('hidden');
-
-          await ensureCrystalForPlayer(state.userId);
         };
         seatTabs.appendChild(tab);
       }
@@ -1203,7 +1433,7 @@ async function renderSeatTabs(){
 
     seatLabel.textContent = '席を選択';
 
-    const effectiveMax = maxPlayers || 20;
+    const effectiveMax = maxPlayers || 8;
     const tablesSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
     const tables = tablesSnap.val() || {};
 
@@ -1218,11 +1448,9 @@ async function renderSeatTabs(){
       tab.onclick = async () => {
         if(tab.classList.contains('disabled')) return;
         const tRef = ref(db, `rooms/${state.roomCode}/tables/${i}`);
-        await set(tRef, { playerId: state.userId, playerName: state.userName });
+        await set(tRef, { playerId: state.userId, playerName: state.userName || '名無し' });
         state.seatedTable = i;
         seatPop.classList.add('hidden');
-
-        await ensureCrystalForPlayer(state.userId);
       };
       seatTabs.appendChild(tab);
     }
@@ -1262,173 +1490,10 @@ function subscribePlayers(){
       state.seatedTable = null;
     }
 
-    await ensureRoomSeed();
-    for(const p of players){
-      ensureCrystalForPlayer(p.id);
-    }
-
     await syncSeatUI();
     renderPlayerCircle(players);
+    hostMaybeAdvanceDraft();
   });
-}
-
-/* =========================================================
-   ★ 要求どおり：
-   1) 自分のネームタグは必ず「下辺中央」(rounded-rect周回の bottom center) に固定
-   2) それでも「均等に並ぶ」＝全員を等間隔で配置した見え方にする
-      -> 全員N人の等間隔 t を作り、そこから
-         ・自分のtを「下中央」に来るように全体を回転
-         ・最後に自分だけ厳密に下中央へスナップ（数値誤差対策）
-   ========================================================= */
-function pointOnRoundedRectPerimeter(t, w, h, r){
-  r = Math.max(0, Math.min(r, Math.min(w,h)/2));
-
-  const straightW = Math.max(0, w - 2*r);
-  const straightH = Math.max(0, h - 2*r);
-  const L = 2*(straightW + straightH) + 2*Math.PI*r;
-
-  let d = (t - Math.floor(t)) * L;
-
-  if(d <= straightW){
-    return { x: r + d, y: 0 };
-  }
-  d -= straightW;
-
-  const arcLen = (Math.PI/2)*r;
-  if(d <= arcLen){
-    const a = (-Math.PI/2) + (d/arcLen)*(Math.PI/2);
-    return { x: w - r + Math.cos(a)*r, y: r + Math.sin(a)*r };
-  }
-  d -= arcLen;
-
-  if(d <= straightH){
-    return { x: w, y: r + d };
-  }
-  d -= straightH;
-
-  if(d <= arcLen){
-    const a = (0) + (d/arcLen)*(Math.PI/2);
-    return { x: w - r + Math.cos(a)*r, y: h - r + Math.sin(a)*r };
-  }
-  d -= arcLen;
-
-  if(d <= straightW){
-    return { x: (w - r) - d, y: h };
-  }
-  d -= straightW;
-
-  if(d <= arcLen){
-    const a = (Math.PI/2) + (d/arcLen)*(Math.PI/2);
-    return { x: r + Math.cos(a)*r, y: h - r + Math.sin(a)*r };
-  }
-  d -= arcLen;
-
-  if(d <= straightH){
-    return { x: 0, y: (h - r) - d };
-  }
-  d -= straightH;
-
-  const a = (Math.PI) + (Math.min(d, arcLen)/arcLen)*(Math.PI/2);
-  return { x: r + Math.cos(a)*r, y: r + Math.sin(a)*r };
-}
-
-/* ★ rounded-rect周回で「下辺中央」に来るt（この形状定義では、直線+右下コーナー後に下辺へ入る）
-   - ここは固定値でもOKだけど、形が変わっても “下辺中央” を狙えるよう、幾何に依存せず数値指定する。
-   - 既存実装の pointOnRoundedRectPerimeter の “下辺” 区間は d が「直線W + 2*arc + 直線H + arc」後。
-   - ただし実用上は固定tで十分なので、ここでは視覚的にズレない値を採用。
-*/
-const ANCHOR_T_BOTTOM_CENTER = 0.50; // ★ 下辺中央（見た目優先の安定値）
-
-function renderPlayerCircle(players){
-  playerCircle.innerHTML = '';
-  if (!players.length) return;
-
-  // ★ 四角（%空間）
-  const rectW = 86;
-  const rectH = 86;
-  const rectX0 = (100 - rectW)/2;
-  const rectY0 = (100 - rectH)/2;
-
-  // ★ 角丸
-  const cornerR = 10;
-
-  // ★ 自分を探す
-  const meIndex = players.findIndex(p => p.id === state.userId);
-  const me = (meIndex >= 0) ? players[meIndex] : null;
-
-  const N = players.length;
-  const step = 1 / N;
-
-  // ★ 全員を「等間隔」で並べる基準t（seatIndex順のまま）
-  //    tBase[i] = i*step
-  // ★ そのうえで「自分」が下辺中央に来るように全体を回転（offsetを足す）
-  //    (meIndex * step + offset) % 1 = anchor
-  //     -> offset = anchor - meIndex*step
-  const anchor = ANCHOR_T_BOTTOM_CENTER;
-  const offset = (meIndex >= 0) ? (anchor - meIndex * step) : anchor;
-
-  function placePlayer(p, t, isMe=false){
-    const pt = pointOnRoundedRectPerimeter(t, rectW, rectH, cornerR);
-    const x = rectX0 + pt.x;
-    const y = rectY0 + pt.y;
-
-    const tag = document.createElement('div');
-    tag.className = 'player-tag' + (isMe ? ' me' : '');
-    tag.textContent = p.name;
-    tag.style.left = `${x}%`;
-    tag.style.top  = `${y}%`;
-
-    // ★ クリスタル：タグの上（CSSで上配置）
-    const spec = state.crystals?.[p.id];
-    const crystal = document.createElement('div');
-    crystal.className = 'tag-crystal';
-    crystal.innerHTML = crystalSVG(spec, 18);
-    tag.appendChild(crystal);
-
-    tag.onclick = () => {
-      if (p.id === state.userId) return;
-      if (!state.roomCode) return;
-      if (state.seatedTable !== null) return;
-
-      pendingSeatIndexToSteal = p.seatIndex;
-      pendingSeatPlayerIdToSteal = p.id;
-      kickMessage.textContent = `「${p.name}」を追い出して、この席に着席しますか？`;
-      kickDialog.classList.remove('hidden');
-    };
-
-    const handData = state.hands[p.id];
-    if (!isMe && handData && typeof handData.card === 'number'){
-      const miniHand = document.createElement('div');
-      miniHand.className = 'mini-hand';
-      const card = document.createElement('div');
-      card.className = 'mini-card';
-      card.textContent = '';
-      miniHand.appendChild(card);
-      tag.appendChild(miniHand);
-    }
-
-    playerCircle.appendChild(tag);
-  }
-
-  // ★ 全員を等間隔に配置（回転込み）
-  for(let i=0;i<N;i++){
-    const p = players[i];
-    const t = (i * step + offset) % 1;
-    placePlayer(p, t, p.id === state.userId);
-  }
-
-  // ★ 最後に、自分だけ“必ず”下辺中央にスナップ（誤差やmeIndex未検出時の保険）
-  if(me){
-    // 既に一度描画しているので、該当要素だけ座標を上書き
-    const meEl = playerCircle.querySelector('.player-tag.me');
-    if(meEl){
-      const pt = pointOnRoundedRectPerimeter(anchor, rectW, rectH, cornerR);
-      const x = rectX0 + pt.x;
-      const y = rectY0 + pt.y;
-      meEl.style.left = `${x}%`;
-      meEl.style.top  = `${y}%`;
-    }
-  }
 }
 
 kickDialog.addEventListener('click', (e) => {
@@ -1464,82 +1529,181 @@ btnKickYes.addEventListener('click', async (e) => {
   }
 
   state.seatedTable = seatIndex;
-  await ensureCrystalForPlayer(state.userId);
 
   kickDialog.classList.add('hidden');
   pendingSeatIndexToSteal = null;
   pendingSeatPlayerIdToSteal = null;
+
   seatPop.classList.add('hidden');
 });
 
-/* ★ 配布 & お題 */
-async function dealInitialHandsAndTopic(){
+async function dealInitialHandsAndStartDraft(){
   if (!state.roomCode) return;
 
   const tablesSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
   const tables = tablesSnap.val() || {};
 
-  const playerIds = [];
-  for (const seatIndex of Object.keys(tables)) {
-    const t = tables[seatIndex];
-    if (!t || !t.playerId) continue;
-    playerIds.push(t.playerId);
-  }
-  if(!playerIds.length) return;
+  const players = Object.entries(tables)
+    .map(([seatIndex, t]) => (t && t.playerId ? {
+      id: t.playerId,
+      name: t.playerName || '名無し',
+      seatIndex: Number(seatIndex)
+    } : null))
+    .filter(Boolean)
+    .sort((a,b) => a.seatIndex - b.seatIndex);
 
-  const nums = Array.from({length:100}, (_,i)=>i+1);
-  for(let i=nums.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [nums[i], nums[j]] = [nums[j], nums[i]];
-  }
+  if (players.length < 2) return;
 
+  const roleList = makeRoleListForN(players.length);
   const hands = {};
-  playerIds.forEach((pid, idx) => { hands[pid] = { card: nums[idx] }; });
+  players.forEach((p, i) => {
+    hands[p.id] = {
+      role: roleList[i] || ROLE_CARDS[0],
+      pool: dealPool5(),
+      decided: [],
+      pickIdx: null
+    };
+  });
 
-  const topicText = pickRandom(TOPIC_POOL);
-
+  const now = Date.now();
   await Promise.all([
     set(ref(db, `rooms/${state.roomCode}/hands`), hands),
-    remove(ref(db, `rooms/${state.roomCode}/fieldCards`)),
-    update(ref(db, `rooms/${state.roomCode}`), {
-      revealStarted: false,
-      topic: { text: topicText, at: Date.now() }
+    set(ref(db, `rooms/${state.roomCode}/draft`), {
+      phase: "draft",
+      round: 1,
+      status: "picking",
+      incomingToken: now,
+      updatedAt: now
     })
   ]);
+}
+
+async function hostMaybeAdvanceDraft(){
+  if (!state.isHost) return;
+  if (!state.roomCode) return;
+  if (!state.draft || state.draft.phase !== "draft") return;
+
+  if (state.draft.status === "passing") return;
+  if (state.draft.status !== "picking") return;
+
+  const seated = latestPlayers.slice().sort((a,b)=>a.seatIndex-b.seatIndex);
+  if (!seated.length) return;
+
+  const allPicked = seated.every(p => {
+    const h = state.hands[p.id];
+    return h && Number.isInteger(h.pickIdx) && Array.isArray(h.pool) && h.pool.length > 0;
+  });
+  if (!allPicked) return;
+
+  const passToken = Date.now();
+  await update(ref(db, `rooms/${state.roomCode}/draft`), {
+    status: "passing",
+    passToken,
+    updatedAt: passToken
+  });
+
+  if (hostPassTimer) clearTimeout(hostPassTimer);
+
+  hostPassTimer = setTimeout(async () => {
+    const dSnap = await get(ref(db, `rooms/${state.roomCode}/draft`));
+    const d = dSnap.val();
+    if (!d || d.phase !== "draft" || d.status !== "passing" || d.passToken !== passToken) return;
+
+    const tSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
+    const t = tSnap.val() || {};
+    const order = Object.entries(t)
+      .map(([seatIndex, v]) => (v && v.playerId ? { seatIndex:Number(seatIndex), id:v.playerId } : null))
+      .filter(Boolean)
+      .sort((a,b)=>a.seatIndex-b.seatIndex);
+
+    const hSnap = await get(ref(db, `rooms/${state.roomCode}/hands`));
+    const hands = hSnap.val() || {};
+    if (order.length < 2) return;
+
+    const remainingById = {};
+    const decidedNextById = {};
+    order.forEach(({id}) => {
+      const h = hands[id];
+      const pool = Array.isArray(h?.pool) ? h.pool : [];
+      const decided = Array.isArray(h?.decided) ? h.decided : [];
+      const pickIdx = Number.isInteger(h?.pickIdx) ? h.pickIdx : null;
+
+      const pickedCard = (pickIdx !== null && pool[pickIdx] != null) ? pool[pickIdx] : null;
+      const remain = pool.filter((_, idx) => idx !== pickIdx);
+
+      remainingById[id] = remain;
+      decidedNextById[id] = pickedCard ? decided.concat([pickedCard]) : decided.slice();
+    });
+
+    const newHands = {};
+    for (let i=0;i<order.length;i++){
+      const me = order[i].id;
+      const next = order[(i+1) % order.length].id;
+      const base = hands[me] || {};
+      newHands[me] = {
+        ...base,
+        pool: remainingById[next] || [],
+        decided: decidedNextById[me] || [],
+        pickIdx: null
+      };
+    }
+
+    const anyPoolLeft = Object.values(newHands).some(h => Array.isArray(h.pool) && h.pool.length > 0);
+    const now = Date.now();
+
+    await set(ref(db, `rooms/${state.roomCode}/hands`), newHands);
+
+    if (!anyPoolLeft){
+      await update(ref(db, `rooms/${state.roomCode}/draft`), {
+        phase: "done",
+        status: "done",
+        updatedAt: now
+      });
+    } else {
+      await update(ref(db, `rooms/${state.roomCode}/draft`), {
+        status: "picking",
+        round: (d.round || 1) + 1,
+        incomingToken: now,
+        updatedAt: now
+      });
+    }
+  }, 1000);
 }
 
 hostSettingsBtn.addEventListener('click', () => {
   if (!state.isHost) return;
   startPop.classList.toggle('hidden');
 });
-btnStartPopClose.addEventListener('click', () => { startPop.classList.add('hidden'); });
-
+btnStartPopClose.addEventListener('click', () => startPop.classList.add('hidden'));
 btnGameStart.addEventListener('click', async () => {
   if (!state.isHost) return;
-  await dealInitialHandsAndTopic();
+  await dealInitialHandsAndStartDraft();
   startPop.classList.add('hidden');
 });
-
 btnResetRoom.addEventListener('click', async () => {
   if (!state.isHost || !state.roomCode) return;
-
   const base = `rooms/${state.roomCode}`;
   await Promise.all([
     remove(ref(db, `${base}/maxPlayers`)),
     remove(ref(db, `${base}/tables`)),
     remove(ref(db, `${base}/hands`)),
-    remove(ref(db, `${base}/fieldCards`)),
-    remove(ref(db, `${base}/crystals`)),
-    remove(ref(db, `${base}/seed`)),
-    remove(ref(db, `${base}/topic`)),
-    update(ref(db, `${base}`), { revealStarted:false })
+    remove(ref(db, `${base}/draft`))
   ]);
-
   state.seatedTable = null;
   startPop.classList.add('hidden');
+
+  state.order.decidedKey = null;
+  state.order.decidedObjs = [];
+  state.order.slots = Array(5).fill(null);
+  state.order.completed = false;
+  state.order.open = false;
+  state.order._autoOpenedOnce = false;
+  hideOrderBig();
+
   await syncSeatUI();
 });
 </script>
 
 </body>
 </html>
+
