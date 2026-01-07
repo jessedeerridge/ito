@@ -105,7 +105,7 @@
     transform-origin:bottom center;
     box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
-  .my-hand-wrapper{
+ .my-hand-wrapper{
     margin-top:6px;
     text-align:center;
     position:relative;
@@ -142,8 +142,26 @@
   .hand-block.front{z-index:6;}
   .hand-block.order-stack{z-index:1;}
 
+  .hand-overlay{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:8px;
+    padding:0 12px 12px;
+    display:flex;
+    justify-content:center;
+    pointer-events:none;
+    z-index:40;
+  }
+  .hand-overlay.hidden{display:none;}
+  .hand-overlay .my-hand-wrapper{
+    pointer-events:auto;
+    margin-top:0;
+  }
 
-
+  body.order-open .hand-overlay{
+    bottom:90px;
+  }
 
   .my-card{
     width:60px;height:40px;border-radius:8px;border:1px solid #ddd;background:#fff;
@@ -608,6 +626,8 @@
     <div class="order-hint">下の「決定カード」からドラッグして右側の5枠へ。<br>枠内でドラッグして並び替えもできます。</div>
   </div>
 </div>
+<div id="handOverlay" class="hand-overlay hidden" aria-hidden="true"></div>
+
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -676,7 +696,12 @@ const seatLabel = seatPop.querySelector('label');
 
 const playerCircle = document.getElementById('playerCircle');
 const myHandEl = document.getElementById('myHand');
-
+const myHandWrapper = document.querySelector('.my-hand-wrapper');
+const handOverlay = document.getElementById('handOverlay');
+const handAnchor = document.createComment('hand-anchor');
+if (myHandWrapper?.parentElement){
+  myHandWrapper.parentElement.insertBefore(handAnchor, myHandWrapper.nextSibling);
+}
 
 const kickDialog = document.getElementById('kickDialog');
 const kickMessage = document.getElementById('kickMessage');
@@ -998,6 +1023,14 @@ function safeParseDragPayload(s){
 
 function setOrderOpen(isOpen){
   document.body.classList.toggle('order-open', isOpen);
+  if (!myHandWrapper || !handOverlay || !handAnchor.parentElement) return;
+  if (isOpen){
+    handOverlay.classList.remove('hidden');
+    handOverlay.appendChild(myHandWrapper);
+  } else {
+    handOverlay.classList.add('hidden');
+    handAnchor.parentElement.insertBefore(myHandWrapper, handAnchor);
+  }
 }
 
 function setupPointerDrag(el, { cardId, fromSlotIdx }){
