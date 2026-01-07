@@ -1,5 +1,4 @@
-ドラッグがクリックではできるが、タッチ操作できない。直して。
-それから、下にある手札カード（順カード設置前のカード）のレイヤーは順カードよりも前のレイヤーにして。
+
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -10,7 +9,7 @@
 <style>
   html, body{height:100%; overflow:hidden;}
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;color:#111;}
-  header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee; position:sticky; top:0; z-index:400; background:#fff;}
+  header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; background:#fff;}
   h1{margin:0;font-size:18px;}
   .small{font-size:12px;opacity:.75;}
   .join-box{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:12px; position:relative; z-index:2;}
@@ -38,7 +37,7 @@
     position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
     background:orange;border:1px solid #eee;border-radius:12px;
     box-shadow:0 12px 28px rgba(0,0,0,.12);
-    padding:10px;z-index:220;display:flex;flex-direction:column;gap:10px;min-width:280px;
+    padding:10px;z-index:20;display:flex;flex-direction:column;gap:10px;min-width:280px;
   }
   .seat-pop.hidden{display:none;}
   .seat-pop .row{display:flex;gap:8px;align-items:center;}
@@ -54,7 +53,7 @@
     background:rgba(20,20,20,.92);color:#fff;
     padding:12px 16px;border-radius:14px;
     box-shadow:0 18px 40px rgba(0,0,0,.35);
-    z-index:225;font-weight:800;white-space:nowrap;
+    z-index:21;font-weight:800;white-space:nowrap;
     pointer-events:none;
   }
   .host-selecting-pop.hidden{display:none;}
@@ -106,12 +105,11 @@
     transform-origin:bottom center;
     box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
-
-  .my-hand-wrapper{
+ .my-hand-wrapper{
     margin-top:6px;
     text-align:center;
     position:relative;
-    z-index:650; /* order-big(520) より大きく */
+    z-index:25; /* 順カードより前面に固定 */
   }
   .my-hand-title{display:none;}
 
@@ -220,7 +218,7 @@
     left:calc(50% - 260px/2 - 16px - var(--rfw)); /* 順カード(260)の左に16px */
     top:50%;
     transform:translateY(-50%);
-    z-index:621;
+    z-index:26;
     pointer-events:none;
     border-radius:14px;
     font-size:14px;
@@ -229,7 +227,7 @@
 
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
-    display:flex;align-items:center;justify-content:center;z-index:300;
+    display:flex;align-items:center;justify-content:center;z-index:15;
   }
   .dialog-backdrop.hidden{display:none;}
   .dialog-box{
@@ -243,13 +241,13 @@
   .host-settings-btn{
     position:fixed;right:16px;bottom:16px;width:44px;height:44px;border-radius:50%;
     border:1px solid #ddd;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);
-    display:none;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:230;
+    display:none;align-items:center;justify-content:center;font-size:22px;cursor:pointer;z-index:22;
   }
   .host-settings-btn.visible{display:flex;}
 
   .start-pop{
     position:fixed;right:16px;bottom:72px;background:#fff;border:1px solid #ddd;border-radius:12px;
-    box-shadow:0 12px 28px rgba(0,0,0,.16);padding:10px 12px;z-index:240;min-width:260px;
+    box-shadow:0 12px 28px rgba(0,0,0,.16);padding:10px 12px;z-index:23;min-width:260px;
     display:flex;flex-direction:column;gap:8px;
   }
   .start-pop.hidden{display:none;}
@@ -269,14 +267,14 @@
     border:1px solid #111;background:#111;color:#fff;
     box-shadow:0 8px 20px rgba(0,0,0,.18);
     display:none;align-items:center;justify-content:center;
-    font-size:22px;font-weight:800;cursor:pointer;z-index:230;
+    font-size:22px;font-weight:800;cursor:pointer;z-index:22;
   }
   .help-btn.visible{display:flex;}
 
   .help-pop-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
     display:flex;align-items:flex-end;justify-content:center;
-    z-index:310;
+    z-index:16;
     padding:16px;
   }
   .help-pop-backdrop.hidden{display:none;}
@@ -317,7 +315,7 @@
     position:fixed;
     left:50%; top:50%;
     transform:translate(-50%,-50%);
-    z-index:520;
+    z-index:5;
     pointer-events:auto;
   }
   .order-big.hidden{display:none;}
@@ -430,6 +428,20 @@
     cursor:grab;
   }
   .order-in-slot:active{cursor:grabbing;}
+  .order-pointer-draggable{
+    touch-action:none;
+    cursor:grab;
+  }
+  .order-pointer-draggable:active{cursor:grabbing;}
+  .drag-ghost{
+    position:fixed;
+    left:0;
+    top:0;
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:30;
+    opacity:.92;
+  }
 
   /* ★順カード小：縦幅を正体カード(90px)より高くする */
   .order-card-small{
@@ -905,10 +917,12 @@ function cardTextById(cardId){
 function showOrderBig(){
   state.order.open = true;
   orderBigWrap.classList.remove('hidden');
+  setOrderOpen(true);
   renderOrderBigSlots();
 }
 function hideOrderBig(){
   orderBigWrap.classList.add('hidden');
+  setOrderOpen(false);
   cleanupFloatingRole(); /* ★中央に残る正体カードを即回収 */
 }
 function toggleOrderBig(){
@@ -950,13 +964,8 @@ function renderOrderBigSlots(){
       const chip = document.createElement('div');
       chip.className = 'order-in-slot';
       chip.textContent = cardTextById(cid);
-      chip.draggable = true;
-
-      chip.addEventListener('dragstart', (e) => {
-        const data = JSON.stringify({ type:'orderCard', cardId: cid, fromSlotIdx: i });
-        e.dataTransfer?.setData('text/plain', data);
-        e.dataTransfer?.setData('text/uri-list', '');
-      });
+      chip.draggable = false;
+      setupPointerDrag(chip, { cardId: cid, fromSlotIdx: i });
 
       slot.appendChild(chip);
     }
@@ -964,7 +973,6 @@ function renderOrderBigSlots(){
     orderSlotsBig.appendChild(slot);
   }
 }
-
 function safeParseDragPayload(s){
   try{
     const o = JSON.parse(s);
@@ -973,6 +981,95 @@ function safeParseDragPayload(s){
     return null;
   }
 }
+
+function setOrderOpen(isOpen){
+  document.body.classList.toggle('order-open', isOpen);
+}
+
+function setupPointerDrag(el, { cardId, fromSlotIdx }){
+  el.classList.add('order-pointer-draggable');
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 && e.pointerType !== 'touch') return;
+    e.preventDefault();
+    e.stopPropagation();
+    startPointerDrag(e, { cardId, fromSlotIdx, sourceEl: el });
+  });
+}
+
+function startPointerDrag(e, { cardId, fromSlotIdx, sourceEl }){
+  if (state.order.dragging) return;
+  const rect = sourceEl.getBoundingClientRect();
+  const ghost = sourceEl.cloneNode(true);
+  ghost.classList.add('drag-ghost');
+  ghost.style.width = `${rect.width}px`;
+  ghost.style.height = `${rect.height}px`;
+  ghost.style.left = `${e.clientX}px`;
+  ghost.style.top = `${e.clientY}px`;
+  document.body.appendChild(ghost);
+
+  const dragState = {
+    cardId,
+    fromSlotIdx,
+    pointerId: e.pointerId,
+    ghostEl: ghost
+  };
+  state.order.dragging = dragState;
+
+  sourceEl.setPointerCapture(e.pointerId);
+  window.addEventListener('pointermove', onPointerDragMove);
+  window.addEventListener('pointerup', onPointerDragEnd);
+  window.addEventListener('pointercancel', onPointerDragEnd);
+}
+
+function getOrderSlotAtPoint(x, y){
+  const el = document.elementFromPoint(x, y);
+  const slot = el?.closest?.('.order-slot') || null;
+  if (slot && orderBigWrap.contains(slot)) return slot;
+  return null;
+}
+
+function clearSlotHighlights(){
+  document.querySelectorAll('.order-slot.over').forEach(el => el.classList.remove('over'));
+}
+
+function onPointerDragMove(e){
+  const dragState = state.order.dragging;
+  if (!dragState || dragState.pointerId !== e.pointerId) return;
+  if (dragState.ghostEl){
+    dragState.ghostEl.style.left = `${e.clientX}px`;
+    dragState.ghostEl.style.top = `${e.clientY}px`;
+  }
+
+  clearSlotHighlights();
+  const slot = getOrderSlotAtPoint(e.clientX, e.clientY);
+  if (slot) slot.classList.add('over');
+}
+
+function onPointerDragEnd(e){
+  const dragState = state.order.dragging;
+  if (!dragState || dragState.pointerId !== e.pointerId) return;
+
+  clearSlotHighlights();
+
+  const slot = getOrderSlotAtPoint(e.clientX, e.clientY);
+  if (slot){
+    const idx = Number(slot.dataset.idx);
+    placeCardIntoSlot(dragState.cardId, idx, dragState.fromSlotIdx);
+  } else {
+    const target = document.elementFromPoint(e.clientX, e.clientY);
+    const decidedBlock = target?.closest?.('.hand-block.decided');
+    if (decidedBlock && Number.isInteger(dragState.fromSlotIdx)){
+      removeCardFromSlots(dragState.cardId);
+    }
+  }
+
+  if (dragState.ghostEl) dragState.ghostEl.remove();
+  state.order.dragging = null;
+  window.removeEventListener('pointermove', onPointerDragMove);
+  window.removeEventListener('pointerup', onPointerDragEnd);
+  window.removeEventListener('pointercancel', onPointerDragEnd);
+}
+
 
 function placeCardIntoSlot(cardId, toIdx, fromSlotIdx){
   const existingIdx = state.order.slots.findIndex(x => x === cardId);
@@ -1158,13 +1255,9 @@ function renderMyHand(){
       const cardId = `d${i}`;
       c.classList.remove('disabled');
       c.style.cursor = 'grab';
-      c.draggable = true;
+      c.draggable = false;
       c.title = 'ドラッグして順カードの枠へ';
-
-      c.addEventListener('dragstart', (e) => {
-        const data = JSON.stringify({ type:'orderCard', cardId, fromSlotIdx: null });
-        e.dataTransfer?.setData('text/plain', data);
-      });
+      setupPointerDrag(c, { cardId, fromSlotIdx: null });
     }
 
     decidedBlock.appendChild(c);
@@ -1706,4 +1799,3 @@ btnResetRoom.addEventListener('click', async () => {
 
 </body>
 </html>
-
