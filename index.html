@@ -1273,6 +1273,13 @@ function heartSVG(filled){
    ========================= */
 let topicFitRAF = 0;
 
+function topicControlsKey(tc){
+  return JSON.stringify({
+    hearts: tc?.hearts || [],
+    dealCount: tc?.dealCount
+  });
+}
+
 function fitTopicText(){
   cancelAnimationFrame(topicFitRAF);
   topicFitRAF = requestAnimationFrame(() => {
@@ -1308,8 +1315,11 @@ function renderTopic(){
   if(old) old.remove();
   if(!state.topic || !state.topic.text) return;
 
+  const tc = topicControls();
   const bar = document.createElement('div');
   bar.className = 'topic-bar';
+  bar.dataset.topicText = String(state.topic.text);
+  bar.dataset.topicControls = topicControlsKey(tc);
 
   const t = document.createElement('div');
   t.className = 'topic-card';
@@ -1317,8 +1327,6 @@ function renderTopic(){
 
   const ui = document.createElement('div');
   ui.className = 'topic-ui';
-
-  const tc = topicControls();
 
   const heartRow = document.createElement('div');
   heartRow.className = 'heart-row';
@@ -1430,8 +1438,19 @@ btnRevealYes.addEventListener('click', async (e) => {
 });
 
 function renderFieldCards(){
-  plazaEl.innerHTML = '';
-  renderTopic();
+  const existingTopic = plazaEl.querySelector('.topic-bar');
+  const nextTopicText = state.topic?.text ? String(state.topic.text) : null;
+  const nextTopicControls = topicControlsKey(topicControls());
+
+  if(!nextTopicText){
+    if(existingTopic) existingTopic.remove();
+  }else if(!existingTopic
+    || existingTopic.dataset.topicText !== nextTopicText
+    || existingTopic.dataset.topicControls !== nextTopicControls){
+    renderTopic();
+  }
+
+  plazaEl.querySelectorAll('.field-card').forEach((el) => el.remove());
 
   const entries = Object.values(state.fieldCards || {}).filter(Boolean);
   entries.sort((a,b)=>(a?.z||0)-(b?.z||0));
