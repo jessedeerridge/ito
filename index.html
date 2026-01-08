@@ -524,13 +524,9 @@
     outline:none;
   }
   .input-hint{margin-top:10px; font-size:12px; opacity:.7;}
-.player-tag.me{ margin-top: 60px; }
-#myHand{ margin-top: 60px; }
+.player-tag.me{ margin-top: 110px; }
+#myHand{ margin-top: 110px; }
 
-@media (max-width: 600px){
-  .player-tag.me{ margin-top: 110px; }
-  #myHand{ margin-top: 110px; }
-}
 input, textarea, select, button{
   font-size:16px;
 }
@@ -1174,53 +1170,6 @@ async function ensureCrystalForPlayer(playerId){
   });
 }
 
-async function transferSeatAssets(fromPlayerId, toPlayerId){
-  if(!state.roomCode) return;
-  if(!fromPlayerId || !toPlayerId || fromPlayerId === toPlayerId) return;
-
-  const base = `rooms/${state.roomCode}`;
-  const [handsSnap, notesSnap, crystalsSnap, fieldSnap] = await Promise.all([
-    get(ref(db, `${base}/hands`)),
-    get(ref(db, `${base}/notes`)),
-    get(ref(db, `${base}/crystals`)),
-    get(ref(db, `${base}/fieldCards`))
-  ]);
-
-  const hands = handsSnap.val() || {};
-  const notes = notesSnap.val() || {};
-  const crystals = crystalsSnap.val() || {};
-  const fieldCards = fieldSnap.val() || {};
-
-  const updates = {};
-  if(hands[fromPlayerId]){
-    updates[`${base}/hands/${toPlayerId}`] = hands[fromPlayerId];
-    updates[`${base}/hands/${fromPlayerId}`] = null;
-  }
-
-  const handPrefix = `H:${fromPlayerId}:`;
-  for(const [key, value] of Object.entries(notes)){
-    if(!key.startsWith(handPrefix)) continue;
-    const newKey = `H:${toPlayerId}:${key.slice(handPrefix.length)}`;
-    updates[`${base}/notes/${newKey}`] = value;
-    updates[`${base}/notes/${key}`] = null;
-  }
-
-  if(crystals[fromPlayerId]){
-    updates[`${base}/crystals/${toPlayerId}`] = crystals[fromPlayerId];
-    updates[`${base}/crystals/${fromPlayerId}`] = null;
-  }
-
-  for(const [cardId, card] of Object.entries(fieldCards)){
-    if(card && card.ownerId === fromPlayerId){
-      updates[`${base}/fieldCards/${cardId}/ownerId`] = toPlayerId;
-    }
-  }
-
-  if(Object.keys(updates).length){
-    await update(ref(db), updates);
-  }
-}
-
 /* 提出人数チェック（配布枚数ぶん提出が必要） */
 function expectedPlayerIds(){
   return (latestPlayers || []).map(p=>p.id).filter(Boolean);
@@ -1335,6 +1284,9 @@ let fieldPointer = null;
 
 const CLICK_DELAY_MS = 220;
 const clickTimers = new Map();
+const DOUBLE_TAP_MS = 300;
+const lastTapTimes = new Map();
+const suppressClickUntil = new Map();
 
 function cancelPendingClick(cardId){
   const t = clickTimers.get(cardId);
@@ -1495,13 +1447,14 @@ function renderFieldCards(){
       if(!state.roomCode) return;
       if(fc.ownerId !== state.userId) return;
       if(fieldPointer?.id === fc.id && fieldPointer?.moved) return;
+      if((suppressClickUntil.get(fc.id) || 0) > Date.now()) return;
 
       scheduleSingleClick(fc.id, () => {
         openNotePopFor(noteKeyForField(fc.id), `場 ${fc.value}`);
       });
     });
 
-    el.addEventListener('dblclick', async () => {
+    const handleRevealRequest = async () => {
       if(!state.roomCode) return;
 
       cancelPendingClick(fc.id);
@@ -1515,6 +1468,24 @@ function renderFieldCards(){
         return;
       }
       await revealCard(fc.id);
+    };
+
+    el.addEventListener('dblclick', async () => {
+      await handleRevealRequest();
+    });
+
+    el.addEventListener('pointerup', async (e) => {
+      if(e.pointerType !== 'touch') return;
+      if(fieldPointer?.id === fc.id && fieldPointer?.moved) return;
+      const now = Date.now();
+      const lastTap = lastTapTimes.get(fc.id) || 0;
+      if(now - lastTap < DOUBLE_TAP_MS){
+        lastTapTimes.delete(fc.id);
+        suppressClickUntil.set(fc.id, now + DOUBLE_TAP_MS);
+        await handleRevealRequest();
+        return;
+      }
+      lastTapTimes.set(fc.id, now);
     });
 
     plazaEl.appendChild(el);
@@ -2218,10 +2189,6 @@ btnKickYes.addEventListener('click', async (e) => {
 
   const tRef = ref(db, `rooms/${state.roomCode}/tables/${seatIndex}`);
   await set(tRef, { playerId: state.userId, playerName: state.userName || '名無し' });
-
-  if (pendingSeatPlayerIdToSteal) {
-    await transferSeatAssets(pendingSeatPlayerIdToSteal, state.userId);
-  }
 
   if (roomData.hostId && pendingSeatPlayerIdToSteal && roomData.hostId === pendingSeatPlayerIdToSteal) {
     await update(roomRef, { hostId: state.userId });
