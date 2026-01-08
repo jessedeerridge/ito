@@ -1,32 +1,17 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>テンプレ</title>
+<title>ITO</title>
 
-<!-- ★追加：ポップなフォント（演出用） -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 
 <style>
-  /* =========================
-     ★スクロール完全停止（サイト全体）
-     ========================= */
-  html, body{
-    height:100%;
-    overflow:hidden;
-    overscroll-behavior:none;   /* バウンス抑止 */
-  }
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    background:#fff;
-    color:#111;
-    touch-action:none;          /* bodyレベルでスクロール/パンを抑止 */
-  }
-
+  html, body{height:100%; overflow:hidden;}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;color:#111;}
   header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee; position:sticky; top:0; z-index:400; background:#fff;}
   h1{margin:0;font-size:18px;}
   .small{font-size:12px;opacity:.75;}
@@ -36,38 +21,24 @@
   .btn.primary{background:#111;color:#fff;border-color:#111;}
   .btn.ghost{background:transparent;}
   .hidden{display:none;}
-  #lobby{padding:20px;border-top:1px solid #eee; position:relative;} /* ★変更：局所レイヤーは個別に管理 */
+  #lobby{padding:20px;border-top:1px solid #eee; position:relative; z-index:2;}
   .copy-btn.copied, .btn.ghost.copied{background:#16a34a;color:#fff;border-color:#16a34a;}
 
-  /* ★変更：mainのスクロール停止 */
   main{
     position:relative;
     height:calc(100vh - 60px);
-    overflow:hidden;            /* ★スクロール禁止 */
-    overscroll-behavior:none;   /* ★引っ張り/バウンス抑止 */
-    touch-action:none;          /* ★指スクロール抑止 */
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
     background-size:cover;
     background-position:center;
     background-repeat:no-repeat;
   }
-  main.prejoin{ background-image:url('maemain.jpg'); }
-  main.joined{ background-image:url('maingazo.jpg'); }
-
-  /* ★操作したい要素だけ、タップ操作を許可（スクロールは許可しない） */
-  button, input, .btn,
-  .player-wrap, .player-tag,
-  .deck-stack, .board-row, .board-slot,
-  .chip-pool, .chip-pool-area,
-  .side-cards, .side-card,
-  .help-pop, .help-pop-body, .help-pop-header,
-  .seat-pop, .tab,
-  .dialog-box{
-    touch-action: manipulation;
-  }
+  main.prejoin{ background-image:url('itobody.png'); }
+  main.joined{ background-image:url('itobody.png'); }
 
   .seat-pop{
     position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
-    background:orange;border:1px solid #eee;border-radius:12px;
+    background:#bfe9ff;border:1px solid rgba(0,0,0,.08);border-radius:12px;
     box-shadow:0 12px 28px rgba(0,0,0,.12);
     padding:10px;z-index:220;display:flex;flex-direction:column;gap:10px;min-width:280px;
   }
@@ -75,7 +46,7 @@
   .seat-pop .row{display:flex;gap:8px;align-items:center;}
   .seat-pop label{width:84px;font-size:13px;}
   .seat-pop .tabs{display:flex;gap:6px;flex-wrap:wrap;}
-  .tab{padding:6px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;user-select:none;position:relative;}
+  .tab{padding:6px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;user-select:none;position:relative;background:rgba(255,255,255,.65);}
   .tab.disabled{opacity:.45; pointer-events:none;}
   .tab.disabled::after{content:'✕';position:absolute;inset:0;display:grid;place-items:center;font-size:18px;font-weight:700;color:#b91c1c;pointer-events:none;}
   .tab.active{background:#111;color:#fff;border-color:#111;}
@@ -90,139 +61,354 @@
   }
   .host-selecting-pop.hidden{display:none;}
 
-  .player-circle{
+  .table-area{
     position:relative;
-    width:320px;
-    height:320px;
-    margin:20px auto 0;border-radius:50%;
+    width:min(520px, 92vw);
+    height:min(520px, 92vw);
+    max-width:520px;
+    max-height:520px;
+    margin:20px auto 0;
+  }
+
+  .player-circle{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    border-radius:0;
     box-sizing:border-box;
-    border:3px solid #000;
-    z-index:210; /* ★変更：チッププールより前に */
+    border:none;
+    z-index:30;
     pointer-events:none;
   }
-  .player-circle::before{content:'';}
-
-  .player-wrap{
-    position:absolute;
-    transform:translate(-50%,-50%);
-    display:flex;
-    align-items:center;
-    gap:6px;
-    z-index:211; /* ★変更 */
-    pointer-events:auto;
-  }
-
-  .player-tag{
-    position:relative;
-    padding:4px 8px;border-radius:999px;background:#f8f8f8;
-    border:1px solid #ddd;font-size:12px;white-space:nowrap;
-    z-index:212;
-    pointer-events:auto;
-  }
-
-  .player-tag.me{ background:#111;color:#fff;border-color:#111; }
-
-  /* ★追加：公開ターンの強調（現在の番） */
-  .player-tag.turn{
-    outline:2px solid #16a34a;
-    outline-offset:2px;
-  }
-  .player-tag.me.turn{
-    cursor:pointer;
-  }
-  .player-tag.me.turn::after{
-    content:'公開';
-    margin-left:6px;
-    font-size:10px;
-    font-weight:900;
-    padding:1px 6px;
-    border-radius:999px;
-    background:rgba(22,163,74,.18);
-    color:#eafff2;
-    border:1px solid rgba(22,163,74,.35);
-  }
-
-  .owncircle{
+  .player-circle::after{
+    content:'';
     position:absolute;
     left:50%; top:50%;
     transform:translate(-50%,-50%);
-    width:var(--oc-w, 44px);
-    height:var(--oc-h, 44px);
-    border-radius:999px;
-    border:2px solid #000;
-    pointer-events:none;
-    z-index:-1;
+    width:86%;
+    height:86%;
+    border:2px dashed rgba(0,0,0,.18);
+    border-radius:16px;
+    background:transparent;
+    display:none;
   }
-  .owncircle.hidden{ display:none; }
+
+  .player-tag{
+    position:absolute;transform:translate(-50%,-50%);
+    padding:4px 8px;border-radius:999px;background:#f8f8f8;
+    border:1px solid #ddd;font-size:12px;white-space:nowrap;
+    line-height:1.1;
+    user-select:none;
+    cursor:pointer;
+    pointer-events:auto;
+    z-index:60;
+  }
+  .player-tag.me{ background:#111;color:#fff;border-color:#111; }
+
+  .tag-crystal{
+    position:absolute;
+    left:50%;
+    top:-10px;
+    transform:translate(-50%,-100%);
+    width:18px;height:18px;
+    pointer-events:none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.20));
+    z-index:1;
+  }
+  .tag-crystal svg{width:100%;height:100%;display:block;overflow:visible;}
 
   .player-tag .mini-hand{
     position:absolute;left:50%;top:100%;
     transform:translate(-50%,3px);
-    width:60px;height:30px;pointer-events:none;
-    z-index:500; /* ★追加：プールより上 */
+    width:70px;height:30px;pointer-events:none;
   }
   .player-tag .mini-card{
-    position:absolute;left:50%;top:0;width:16px;height:22px;
+    position:absolute;top:0;width:16px;height:22px;
     border-radius:4px;border:1px solid #bbb;
-    background:linear-gradient(135deg,#e5e7eb,#cbd5f5);
+    background-image:url('itocard.png');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
     font-size:10px;display:flex;align-items:center;justify-content:center;
     transform-origin:bottom center;
     box-shadow:0 2px 6px rgba(0,0,0,.15);
   }
 
-  /* ★追加：公開手札（まっすぐ横一列） */
-  .player-tag .reveal-hand{
+  .plaza-wrap{
     position:absolute;
     left:50%;
-    top:100%;
-    transform:translate(-50%,6px);
-    display:flex;
-    gap:4px;
-    pointer-events:none;
-    z-index:500; /* ★追加：プールより上 */
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(560px, 92vw);
+    z-index:10;
+    top: calc(50% + 60px);
   }
-  .reveal-card{
-    width:34px;
-    height:52px;
-  }
-  .reveal-card .pcard,
-  .reveal-card .backcard{
-    width:100% !important;
-    height:100% !important;
-    border-radius:6px !important;
-  }
-  .reveal-card .pcard .corner .rank{ font-size:7px !important; }
-  .reveal-card .pcard .corner .suit{ font-size:7px !important; }
-  .reveal-card .pcard .pip{ font-size:9px !important; }
-  .reveal-card .pcard[data-rank="A"] .pip{ font-size:18px !important; }
-  .reveal-card .pcard .face-holder{ font-size:16px !important; }
-  .reveal-card .pcard .face-suit{ font-size:13px !important; }
+  .plaza{
+    position:relative;
+    width:100%;
+    height:460px;
+    border:2px dashed #000;
+    border-radius:16px;
+    background-image:
+      linear-gradient(rgba(255,255,255,.35), rgba(255,255,255,.35)),
+      url('itotable.png');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
 
-  :root{ --chip-d: 24px; }
-  .owned-chips{
+    box-shadow:0 10px 24px rgba(0,0,0,.08);
+    overflow:hidden;
+    touch-action:none;
+    z-index:10;
+  }
+
+  .card-num{
+    font-family: "Fredoka", "Baloo 2", system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: .02em;
+    line-height: 1;
+    display:inline-block;
+    transform: rotate(var(--rot, 0deg));
+    color: var(--ink, #111);
+    text-shadow:
+      -1px -1px 0 rgba(255,255,255,.95),
+       1px -1px 0 rgba(255,255,255,.95),
+      -1px  1px 0 rgba(255,255,255,.95),
+       1px  1px 0 rgba(255,255,255,.95),
+       0   4px 10px var(--numShadow, rgba(0,0,0,.18));
+    font-size: 42px;
+  }
+
+  .field-card{
+    position:absolute;
+    width:64px;height:96px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,.18);
+    background:#fff;
+    box-shadow:0 10px 22px rgba(0,0,0,.16);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;font-weight:800;
+    transform:translate(-50%,-50%);
+    user-select:none;
+    touch-action:none;
+    cursor:grab;
+    z-index:70;
+    overflow:visible;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .field-card:active{cursor:grabbing;}
+
+  .card-crystal{
+    position:absolute;
+    right:-6px;
+    top:-6px;
+    width:18px;height:18px;
+    pointer-events:none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.22));
+    z-index:2;
+  }
+  .card-crystal svg{width:100%;height:100%;display:block;overflow:visible;}
+
+  .field-card.back{
+    color:transparent;
+    background-image: url('itocard.png');
+    border-color: rgba(0,0,0,.18);
+  }
+  .field-card.back::after{ content:none; }
+
+  .topic-bar{
+    position:absolute;
+    left:50%;
+    top:16px;
+    transform:translateX(-50%);
     display:flex;
     align-items:center;
-    gap:4px;
-    min-height:var(--chip-d);
-    position:relative;
-    z-index:212;
+    gap:10px;
+    z-index:90;
     pointer-events:auto;
   }
-
-  .owned-chip{
-    width:var(--chip-d);
-    height:var(--chip-d);
-    border-radius:999px;
-    overflow:hidden;
+  .topic-card{
+    width:160px;
+    height:52px;
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,.92);
+    background:rgba(80, 180, 255, .92);
+    box-shadow:0 14px 28px rgba(0,0,0,.18);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    color:#fff;
+    letter-spacing:.06em;
+    user-select:none;
+    pointer-events:none;
+    flex:0 0 auto;
   }
-  .owned-chip svg{ width:100%; height:100%; display:block; }
+  .topic-ui{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .heart-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .heart-btn{
+    width:20px;height:20px;
+    border:none;
+    background:transparent;
+    padding:0;
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+  }
+  .heart-btn svg{width:20px;height:20px;display:block;}
 
-  .owned-chip.draggable{ cursor:grab; }
-  .owned-chip.draggable:active{ cursor:grabbing; }
+  .deal-stack{
+    position:relative;
+    width:46px;
+    height:30px;
+    flex:0 0 auto;
+  }
+  .deal-card{
+    position:absolute;
+    top:0;
+    width:20px;height:28px;
+    border-radius:6px;
+    border:1.6px solid #111;
+    background-image:url('itocard.png');
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    box-shadow:0 4px 10px rgba(0,0,0,.14);
+  }
+  .deal-plus{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:none;
+    background:#111;
+    color:#fff;
+    font-weight:900;
+    font-size:12px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+    user-select:none;
+  }
+  .deal-plus:active{transform:translateY(1px);}
 
-  .my-hand-wrapper{margin-top:16px;text-align:center;}
+  .my-hand-wrapper{margin-top:16px;text-align:center; position:relative; z-index:60;}
   .my-hand-title{display:none;}
-  .my-hand{display:flex;justify-content:center;gap:8px;margin-top:6px;min-height:100px;}
+  .my-hand{display:flex;justify-content:center;gap:8px;margin-top:6px;min-height:110px;flex-wrap:wrap;}
+  .my-card{
+    width:64px;height:96px;border-radius:10px;border:1px solid #ddd;background:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;
+    box-shadow:0 8px 18px rgba(0,0,0,.14);
+    user-select:none;
+    touch-action:none;
+    cursor:grab;
+    position:relative;
+    z-index:70;
+    overflow:hidden;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+  }
+  .my-card:active{cursor:grabbing;}
+  .my-card .hint{
+    position:absolute;left:50%;bottom:-18px;transform:translateX(-50%);
+    font-size:11px;opacity:.65;white-space:nowrap;
+    pointer-events:none;
+  }
+
+  /* =========================
+     ✅ 数字カード：白枠 + 内側グラデ背景（表面）
+     ========================= */
+/* ✅ 表面カード：単色（グラデなし）＋白枠をもっと太く */
+.field-card,
+.my-card{
+  border:5px solid #fff;                 /* ← 太くした（好みで 4〜7px） */
+  background-image:none !important;      /* ← グラデ完全OFF */
+  background-color: var(--bgSolid, #eee);/* ← 単色はCSS変数で渡す */
+  box-shadow:0 10px 22px rgba(0,0,0,.16);
+}
+
+/* ✅ 以前のグラデ用の内側効果も消す */
+.field-card::before,
+.my-card::before{
+  content:none !important;
+}
+
+/* ✅ 裏面(itocard)はそのまま（白枠は付けない＝従来通り） */
+.field-card.back{
+  background-image:url('itocard.png') !important;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-color:transparent !important;
+  border:1px solid rgba(0,0,0,.18) !important;
+}
+
+
+  .card-note{
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    width:80%;
+    height:80%;
+    border-radius:10px;
+    border:none;
+    box-shadow:none;
+    background:rgba(255,255,255,.76);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 8px;
+    box-sizing:border-box;
+    text-align:center;
+    font-size:12px;
+    font-weight:700;
+    color:#000;
+    line-height:1.25;
+    white-space:pre-wrap;
+    word-break:break-word;
+    pointer-events:none;
+    z-index:3;
+  }
+  .field-card.back .card-note{
+    color:#000;
+    background:rgba(255,255,255,.76);
+  }
+  .field-card.faceup .card-note{
+    background:transparent;
+    color:#9ca3af;
+  }
+
+.hand-drag-ghost{
+  position:fixed;
+  width:64px;height:96px;
+  border-radius:10px;
+
+  /* ✅ ここがポイント：ドラッグ中も同じ色を使う */
+  border:5px solid #fff;                  /* 表カードと同じ太白枠 */
+  background-image:none !important;       /* グラデ/画像なし */
+  background-color: var(--bgSolid, #eee) !important; /* ← applyCardBgの色が効く */
+
+  box-shadow:0 16px 32px rgba(0,0,0,.22);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;
+  transform:translate(-50%,-50%);
+  z-index:9999;
+  pointer-events:none;
+  opacity:.95;
+  overflow:hidden;
+}
 
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
@@ -257,8 +443,9 @@
 
   #roomInfoLobby, #lobby h2, #lobby p {display:none;}
   #lobby.entered{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     min-height:calc(100vh - 60px);
+    gap:6px;
   }
 
   .help-btn{
@@ -290,395 +477,62 @@
   }
   .help-pop-title{font-weight:800;font-size:14px;}
   .help-pop-body{padding:12px;overflow:auto;max-height:calc(70vh - 48px);}
-  .role-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;}
+  .role-row{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:10px 0;
+  }
   .role-card{
     width:72px;height:108px;border-radius:10px;border:1px solid #ddd;background:#f8f8f8;
     box-shadow:0 6px 16px rgba(0,0,0,.10);
-    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
     font-size:12px;font-weight:700;color:#444;
   }
   .role-desc{flex:1 1 auto;}
   .role-desc .name{font-weight:900;margin-bottom:4px;}
   .role-desc .text{font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap;}
 
-  .center-table{
-    position:absolute;
-    left:50%; top:50%;
-    transform:translate(-50%,-50%);
-    display:flex; align-items:center; gap:10px;
-    pointer-events:none;
-  }
+  .toast{display:none !important;}
 
-  .deck-stack{
-    width:54px;height:78px;
-    position:relative;
-    border-radius:10px;
-    pointer-events:auto;
-    cursor:pointer;
-  }
-  .deck-stack.empty{
-    outline:1px dashed rgba(255,255,255,.45);
-    outline-offset:-4px;
-    background:rgba(20,20,20,.22);
-    box-shadow:none;
-  }
-  .deck-layer{
-    position:absolute; inset:0;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,.65);
-    box-shadow:none;
-    overflow:hidden;
-    background:
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,.18), rgba(255,255,255,0) 55%),
-      repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 6px),
-      linear-gradient(135deg, rgba(185,28,28,.95), rgba(127,29,29,.95));
-  }
-  .deck-layer::after{
-    content:'';
-    position:absolute; inset:6px;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,.45);
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
-  }
-  .deck-count{
-    position:absolute; right:-6px; top:-8px;
-    min-width:22px;height:18px;padding:0 6px;
-    display:flex;align-items:center;justify-content:center;
-    border-radius:999px;
-    background:rgba(0,0,0,.55);
-    color:#fff;font-size:11px;font-weight:900;
-    text-shadow:none;
-    border:1px solid rgba(255,255,255,.25);
-    pointer-events:none;
-  }
-
-  .board-row{ display:flex; gap:8px; pointer-events:auto; }
-
-  .board-slot{
-    width:48px;height:72px;
-    border-radius:10px;
-    border:none;
-    background:transparent;
-    box-shadow:none;
-    backdrop-filter:none;
-    display:flex;align-items:center;justify-content:center;
-    position:relative;
-    overflow:visible;
-    pointer-events:auto;
-  }
-  .board-slot.has-card{ cursor:pointer; }
-
-  .pcard{
-    width:60px;height:90px;
-    border-radius:8px;
-    border:1px solid #ddd;
-    background:#fff;
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-    position:relative;
-    overflow:hidden;
-    user-select:none;
-  }
-  .pcard.red{ color:#c1121f; }
-  .pcard.black{ color:#111; }
-
-  .pcard .corner{
-    position:absolute;
-    display:flex;flex-direction:column;align-items:center;
-    font-weight:900;
-    line-height:1;
-    gap:0px;
-  }
-  .pcard .corner .rank{ font-size:10px; }
-  .pcard .corner .suit{ font-size:10px; transform:translateY(-1px); }
-  .pcard .corner.tl{ left:3px; top:3px; }
-  .pcard .corner.br{ right:3px; bottom:3px; transform:rotate(180deg); }
-
-  .pcard .pips{
-    position:absolute;
-    left:10px; right:10px;
-    top:16px; bottom:16px;
-  }
-  .pcard .pip{
-    position:absolute;
-    transform:translate(-50%,-50%);
-    font-weight:900;
-    font-size:12px;
-  }
-  .pcard .pip.flip{ transform:translate(-50%,-50%) rotate(180deg); }
-  .pcard[data-rank="A"] .pip{ font-size:26px !important; }
-
-  .pcard .face-holder{
-    position:absolute; inset:14px 10px;
-    border-radius:8px;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:1000;
-    font-size:28px;
-    opacity:.20;
-    letter-spacing:.02em;
-  }
-  .pcard .face-suit{
-    position:absolute;
-    left:50%; top:52%;
-    transform:translate(-50%,-50%);
-    font-size:22px;
-    opacity:.35;
-    font-weight:900;
-  }
-
-  .my-card{ width:60px;height:90px; }
-
-  .backcard{
-    width:60px;height:90px;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,.65);
-    overflow:hidden;
-    position:relative;
-    background:
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,.18), rgba(255,255,255,0) 55%),
-      repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 6px),
-      linear-gradient(135deg, rgba(185,28,28,.95), rgba(127,29,29,.95));
-    box-shadow:0 4px 12px rgba(0,0,0,.15);
-  }
-  .backcard::after{
-    content:'';
-    position:absolute;
-    inset:6px;
-    border-radius:6px;
-    border:1px solid rgba(255,255,255,.45);
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
-  }
-
-  .board-slot .pcard,
-  .board-slot .backcard{
-    width:48px !important;
-    height:72px !important;
-  }
-
-  .fly-card{
-    position:fixed;
-    width:60px;height:90px;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,.65);
-    overflow:hidden;
-    z-index:9999;
-    pointer-events:none;
-    background:
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,.18), rgba(255,255,255,0) 55%),
-      repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, rgba(255,255,255,0) 2px 6px),
-      linear-gradient(135deg, rgba(185,28,28,.95), rgba(127,29,29,.95));
-  }
-  .fly-card::after{
-    content:'';
-    position:absolute; inset:6px;
-    border-radius:6px;
-    border:1px solid rgba(255,255,255,.45);
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
-  }
-
-  /* =========================
-     ★追加：左上のマネー/サイレンカード
-     ========================= */
-  .side-cards{
-    position:fixed;
-    left:12px;
-    top:68px;
-    z-index:205;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    pointer-events:auto;
-  }
-  .side-cards.hidden{ display:none; }
-  .side-row{ display:flex; gap:8px; }
-  .side-card{
-    width:72px;
-    height:48px;
-    border-radius:12px;
-    border:2px solid #000;
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-    box-shadow:0 10px 22px rgba(0,0,0,.18);
-    cursor:pointer;
-    user-select:none;
-    touch-action:manipulation;
-  }
-  .side-card:active{ transform:translateY(1px); }
-
-  /* =========================
-     ★チッププール（サイズはJSで人数に合わせて可変）
-     ========================= */
-  .chip-pool{
-    position:fixed;
-    right:12px;
-    top:68px;
-    width:220px;       /* ←初期値（JSで上書き） */
-    height:150px;      /* ←初期値（JSで上書き） */
-    background:rgba(255,255,255,.92);
-    backdrop-filter: blur(6px);
-    border:2px solid #000;
-    border-radius:16px;
-    box-shadow:none;
-    z-index:200; /* ★変更：手札(170/500)より後ろへ */
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    pointer-events:auto;
-  }
-  .chip-pool.hidden{ display:none; }
-  .chip-pool-header{ display:none; }
-  .chip-pool-area{
-    position:relative;
-    flex:1 1 auto;
-    overflow:hidden;
-  }
-  .chip-item{
-    position:absolute;
-    width:var(--chip-d);
-    height:var(--chip-d);
-    border-radius:999px;
-    touch-action:none;  /* ★ドラッグ用（ここは維持） */
-    cursor:grab;
-    user-select:none;
-  }
-  .chip-item.dragging{ cursor:grabbing; }
-  .chip-item svg{ width:100%; height:100%; display:block; }
-
-  .chip-floating{
-    position:fixed;
-    left:0; top:0;
-    z-index:10000;
-    pointer-events:none;
-  }
-
-  #dragLayer{
+  .input-backdrop{
     position:fixed; inset:0;
-    z-index:9999;
-    pointer-events:none;
+    background:rgba(0,0,0,.35);
+    display:flex; align-items:center; justify-content:center;
+    z-index:340;
+    padding:16px;
   }
-
-  /* =========================================================
-     ★追加：手札公開の「最強5枚＋役」演出（中央に2秒）
-     - 英語表記
-     - ポップなフォント
-     ========================================================= */
-  .hand-result-pop{
-    position:fixed;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    z-index:2147483646;
-    pointer-events:none;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .input-backdrop.hidden{display:none;}
+  .input-pop{
+    width:min(420px, calc(100% - 0px));
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:16px;
+    box-shadow:0 18px 40px rgba(0,0,0,.35);
+    padding:14px;
   }
-  .hand-result-pop.hidden{ display:none; }
-
-  .hand-result-card{
-    position:relative;
-    width:min(640px, calc(100vw - 28px));
-    border-radius:18px;
-    border:1px solid rgba(255,255,255,.22);
-    background:
-      radial-gradient(circle at 20% 20%, rgba(255,255,255,.22), rgba(255,255,255,0) 55%),
-      radial-gradient(circle at 80% 30%, rgba(255,255,255,.16), rgba(255,255,255,0) 60%),
-      linear-gradient(180deg, rgba(15,15,20,.92), rgba(10,10,14,.90));
-    box-shadow:0 22px 60px rgba(0,0,0,.55);
-    padding:14px 14px 12px;
-    overflow:hidden;
-    transform-origin:center;
-    animation: handPop 2.0s cubic-bezier(.22,.84,.44,1) both;
+  .input-title{font-weight:900; font-size:14px; margin:0 0 10px;}
+  .input-area{
+    width:100%;
+    min-height:110px;
+    resize:none;
+    padding:10px 12px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    font-size:14px;
+    line-height:1.5;
+    box-sizing:border-box;
+    outline:none;
   }
-  .hand-result-card::before{
-    content:'';
-    position:absolute; inset:-40px;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(255, 215, 0, .22), rgba(255,255,255,0) 55%),
-      radial-gradient(circle at 70% 80%, rgba(0, 255, 200, .16), rgba(255,255,255,0) 60%);
-    filter: blur(10px);
-    opacity:.75;
-    pointer-events:none;
-  }
-  .hand-result-card::after{
-    content:'';
-    position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 2px, rgba(255,255,255,0) 2px 7px);
-    opacity:.25;
-    pointer-events:none;
-  }
-
-  .hand-result-top{
-    position:relative;
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    gap:10px;
-    z-index:1;
-  }
-  .hand-result-title{
-    font-family:'Fredoka','Baloo 2',system-ui,sans-serif;
-    font-weight:700;
-    font-size:20px;
-    letter-spacing:.02em;
-    color:#fff;
-    text-shadow:0 10px 30px rgba(0,0,0,.45);
-    line-height:1.1;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .hand-result-sub{
-    font-family:'Baloo 2','Fredoka',system-ui,sans-serif;
-    font-weight:800;
-    font-size:12px;
-    color:rgba(255,255,255,.78);
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    white-space:nowrap;
-  }
-
-  .hand-result-cards{
-    position:relative;
-    z-index:1;
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    margin-top:10px;
-  }
-
-  .hand-result-cards .pcard,
-  .hand-result-cards .backcard{
-    width:72px !important;
-    height:108px !important;
-    border-radius:10px !important;
-    box-shadow:0 10px 26px rgba(0,0,0,.45) !important;
-    border-color:rgba(255,255,255,.35) !important;
-  }
-  .hand-result-cards .pcard .corner .rank{ font-size:12px !important; }
-  .hand-result-cards .pcard .corner .suit{ font-size:12px !important; }
-  .hand-result-cards .pcard .pip{ font-size:16px !important; }
-  .hand-result-cards .pcard[data-rank="A"] .pip{ font-size:34px !important; }
-  .hand-result-cards .pcard .face-holder{ font-size:36px !important; }
-  .hand-result-cards .pcard .face-suit{ font-size:26px !important; }
-
-  @keyframes handPop{
-    0%   { opacity:0; transform:translateY(10px) scale(.85); filter:blur(2px); }
-    14%  { opacity:1; transform:translateY(0px)  scale(1.03); filter:blur(0px); }
-    22%  { opacity:1; transform:translateY(0px)  scale(1.00); }
-    82%  { opacity:1; transform:translateY(0px)  scale(1.00); }
-    100% { opacity:0; transform:translateY(-6px) scale(.96); }
-  }
+  .input-hint{margin-top:10px; font-size:12px; opacity:.7;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>テンプレ</h1>
+  <h1>ITO</h1>
   <div style="display:flex;align-items:center;gap:6px;">
     <div class="small" id="roomInfo"></div>
-    <button class="btn ghost" id="copyLinkBtn">リンクコピー</button>
+    <button class="btn ghost" id="copyLinkBtn">COPY</button>
   </div>
 </header>
 
@@ -694,18 +548,10 @@
     <div id="roomInfoLobby" style="margin-bottom:8px;"></div>
     <p>ここにテーブルや情報が表示されます。</p>
 
-    <div id="playerCircle" class="player-circle">
-      <div id="centerTable" class="center-table">
-        <div id="deckStack" class="deck-stack empty" title="山札">
-          <div id="deckCount" class="deck-count">52</div>
-        </div>
-        <div id="boardRow" class="board-row" aria-label="場札">
-          <div class="board-slot" data-slot="0"></div>
-          <div class="board-slot" data-slot="1"></div>
-          <div class="board-slot" data-slot="2"></div>
-          <div class="board-slot" data-slot="3"></div>
-          <div class="board-slot" data-slot="4"></div>
-        </div>
+    <div class="table-area" id="tableArea">
+      <div id="playerCircle" class="player-circle"></div>
+      <div class="plaza-wrap">
+        <div id="plaza" class="plaza" aria-label="広場"></div>
       </div>
     </div>
 
@@ -735,22 +581,19 @@
   </div>
 </div>
 
+<!-- ✅ 追加：1枚目の公開だけ確認ポップ -->
+<div id="revealDialog" class="dialog-backdrop hidden">
+  <div class="dialog-box">
+    <p id="revealMessage">このカードを表にしますか？</p>
+    <div class="dialog-buttons">
+      <button class="btn ghost" id="btnRevealNo">いいえ</button>
+      <button class="btn primary" id="btnRevealYes">はい</button>
+    </div>
+  </div>
+</div>
+
 <button id="hostSettingsBtn" class="host-settings-btn" title="設定">⚙</button>
 <button id="helpBtn" class="help-btn" title="正体カード一覧">？</button>
-
-<!-- ★追加：左上カード（マネー/サイレン） -->
-<div id="sideCards" class="side-cards hidden" aria-label="サイドカード">
-  <div id="moneyRow" class="side-row" aria-label="マネーカード"></div>
-  <div id="sirenRow" class="side-row" aria-label="サイレンカード"></div>
-</div>
-
-<div id="chipPool" class="chip-pool hidden" aria-label="チッププール">
-  <div class="chip-pool-header">
-    <div class="chip-pool-title"></div>
-    <div class="chip-pool-sub" id="chipPoolSub"></div>
-  </div>
-  <div id="chipPoolArea" class="chip-pool-area"></div>
-</div>
 
 <div id="helpBackdrop" class="help-pop-backdrop hidden">
   <div class="help-pop" role="dialog" aria-modal="true" aria-label="正体カード一覧">
@@ -768,8 +611,13 @@
     <button id="btnStartPopClose" class="btn ghost" style="padding:2px 6px;font-size:12px;">×</button>
   </div>
   <div class="start-pop-main">
-    「スタート」で山札(52)を生成し、全プレイヤーへ2枚ずつ配布。<br>
-    場札は最初0枚です。山札クリックで「裏3枚→場札クリックで順に表→山札で最大5枚」。
+    「スタート」で全プレイヤーにカードを配布（1〜100）＋お題カードを表示。<br>
+    お題カード右の「+1」で配布枚数(1〜3)を変更できます（2→3→1…）。<br>
+    自分のカードを広場にドラッグすると、全員が動かせるカードになります。<br>
+    ★ 場の自分のカードは「ワンクリック」で書き直し（ドラッグしなかったクリックのみ）<br>
+    ★ 公開（表にする）は「ダブルクリック」<br>
+    ・最初の1枚目だけ「はい/いいえ」確認ポップ<br>
+    ・すでに表が1枚以上あるなら、2枚目以降は即公開
   </div>
   <div class="start-pop-actions">
     <button id="btnResetRoom" class="btn ghost">リセット</button>
@@ -777,42 +625,28 @@
   </div>
 </div>
 
-<!-- ★追加：手札公開の役演出（中央2秒） -->
-<div id="handResultPop" class="hand-result-pop hidden" aria-hidden="true">
-  <div class="hand-result-card" id="handResultCard">
-    <div class="hand-result-top">
-      <div class="hand-result-title" id="handResultTitle">STRAIGHT FLUSH</div>
-      <div class="hand-result-sub" id="handResultSub">PLAYER</div>
-    </div>
-    <div class="hand-result-cards" id="handResultCards"></div>
+<div id="inputBackdrop" class="input-backdrop hidden" role="dialog" aria-modal="true" aria-label="入力">
+  <div class="input-pop" id="inputPop">
+    <p class="input-title" id="inputTitle">カードに書く内容</p>
+    <textarea id="inputArea" class="input-area" placeholder="ここに入力…"></textarea>
+    <div class="input-hint">ポップ外をクリックすると入力完了</div>
   </div>
 </div>
 
-<div id="dragLayer"></div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getDatabase, ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-
-/* =========================
-   ★スクロール完全停止（iOS/トラックパッド対策）
-   ========================= */
-document.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-}, { passive:false });
-
-document.addEventListener('wheel', (e) => {
-  e.preventDefault();
-}, { passive:false });
+import {
+  getDatabase, ref, set, get, update, onValue, remove, runTransaction, push
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAMeKfMoHt9qO2VuUBpkrKuei7yGBbEi8",
+  apiKey: "AIzaSyAMeKfMoHt9qOQ2VuUBpkrKuei7yGBbEi8",
   authDomain: "cheesetheft-fd52f.firebaseapp.com",
   databaseURL: "https://cheesetheft-fd52f-default-rtdb.firebaseio.com",
   projectId: "cheesetheft-fd52f",
   storageBucket: "cheesetheft-fd52f.firebasestorage.app",
   messagingSenderId: "298688959395",
-  appId: "1:2986... (省略せずに入れてOK)",
+  appId: "1:298688959395:web:6ac2c3eb214201f2020016",
   measurementId: "G-HPDFTCLR8H"
 };
 
@@ -829,28 +663,14 @@ const state = {
   seatedTable: null,
   isHost: false,
   hands: {},
+  crystals: {},
+  fieldCards: {},
   room: {},
-  game: { started:false, deck: [], boardCodes: [], boardFaceUpCount: 0, deal:null },
-
-  dealing: false,
-  dealShownCounts: null,
-
-  chipOwners: {},
-  chipPoolPos: {},
-  chipFaceDown: {},
-
-  ownCircleVisible: true,
-
-  /* ★追加：公開フェーズ（DB: rooms/{room}/reveal） */
-  reveal: null,
-
-  /* ★追加：左上カード（DB: rooms/{room}/sideCards） */
-  sideCards: null,
-
-  /* ★追加：公開演出の重複防止 */
-  _revealPopInited: false,
-  _prevRevealed: {},
-  _handPopTimer: 0
+  roomSeed: null,
+  revealStarted: false,
+  topic: null,
+  notes: {},
+  cardStyle: {}
 };
 
 const mainEl = document.getElementById('main');
@@ -864,7 +684,6 @@ const roomInfoLobby = document.getElementById('roomInfoLobby');
 const copyLinkBtn = document.getElementById('copyLinkBtn');
 
 const hostSelectingPop = document.getElementById('hostSelectingPop');
-
 const seatPop = document.getElementById('seatPop');
 const seatTabs = document.getElementById('seatTabs');
 const btnSeatCancel = document.getElementById('btnSeatCancel');
@@ -872,11 +691,17 @@ const seatLabel = seatPop.querySelector('label');
 
 const playerCircle = document.getElementById('playerCircle');
 const myHandEl = document.getElementById('myHand');
+const plazaEl = document.getElementById('plaza');
 
 const kickDialog = document.getElementById('kickDialog');
 const kickMessage = document.getElementById('kickMessage');
 const btnKickYes = document.getElementById('btnKickYes');
 const btnKickNo = document.getElementById('btnKickNo');
+
+const revealDialog = document.getElementById('revealDialog');
+const revealMessage = document.getElementById('revealMessage');
+const btnRevealYes = document.getElementById('btnRevealYes');
+const btnRevealNo  = document.getElementById('btnRevealNo');
 
 const hostSettingsBtn = document.getElementById('hostSettingsBtn');
 const startPop = document.getElementById('startPop');
@@ -889,21 +714,10 @@ const helpBackdrop = document.getElementById('helpBackdrop');
 const btnHelpClose = document.getElementById('btnHelpClose');
 const helpBody = document.getElementById('helpBody');
 
-const chipPool = document.getElementById('chipPool');
-const chipPoolArea = document.getElementById('chipPoolArea');
-const dragLayer = document.getElementById('dragLayer');
-
-/* ★追加：左上カードDOM */
-const sideCardsEl = document.getElementById('sideCards');
-const moneyRowEl  = document.getElementById('moneyRow');
-const sirenRowEl  = document.getElementById('sirenRow');
-
-/* ★追加：手札公開 演出DOM */
-const handResultPop   = document.getElementById('handResultPop');
-const handResultCard  = document.getElementById('handResultCard');
-const handResultTitle = document.getElementById('handResultTitle');
-const handResultSub   = document.getElementById('handResultSub');
-const handResultCards = document.getElementById('handResultCards');
+const inputBackdrop = document.getElementById('inputBackdrop');
+const inputPop = document.getElementById('inputPop');
+const inputTitle = document.getElementById('inputTitle');
+const inputArea = document.getElementById('inputArea');
 
 const ROLE_HELP = [
   { name: "カード1", text: "ああああ" },
@@ -912,6 +726,79 @@ const ROLE_HELP = [
   { name: "カード4", text: "うううう" },
 ];
 
+function showToast(){}
+
+/* ====== ハート/配布枚数 UI（DB同期） ====== */
+function normDealCount(v){
+  let n = Number(v);
+  if(!Number.isFinite(n)) n = 1;
+  n = Math.round(n);
+  if(n < 1) n = 1;
+  if(n > 3) n = 3;
+  return n;
+}
+function normHearts(h){
+  if(Array.isArray(h)){
+    return [h[0],h[1],h[2]].map(v => (v ? 1 : 0));
+  }
+  if(h && typeof h === 'object'){
+    const a0 = (h[0] ?? h['0'] ?? 1);
+    const a1 = (h[1] ?? h['1'] ?? 1);
+    const a2 = (h[2] ?? h['2'] ?? 1);
+    return [a0,a1,a2].map(v => (v ? 1 : 0));
+  }
+  return [1,1,1];
+}
+function topicControls(){
+  const tc = state.room?.topicControls || {};
+  return {
+    hearts: normHearts(tc.hearts),
+    dealCount: normDealCount(tc.dealCount ?? 1),
+  };
+}
+async function ensureTopicControls(){
+  if(!state.roomCode) return;
+  const tcRef = ref(db, `rooms/${state.roomCode}/topicControls`);
+  await runTransaction(tcRef, (cur) => {
+    if(cur == null){
+      return { hearts:[1,1,1], dealCount:1 };
+    }
+    const hearts = normHearts(cur.hearts);
+    const dealCount = normDealCount(cur.dealCount ?? 1);
+    if(!cur.hearts || cur.dealCount == null){
+      return { ...cur, hearts, dealCount };
+    }
+    return cur;
+  });
+}
+async function toggleHeart(idx){
+  if(!state.roomCode) return;
+  const hRef = ref(db, `rooms/${state.roomCode}/topicControls/hearts`);
+  await runTransaction(hRef, (cur) => {
+    let arr = normHearts(cur);
+    arr[idx] = arr[idx] ? 0 : 1;
+    return arr;
+  });
+}
+async function incDealCount(){
+  if(!state.roomCode) return;
+  const dRef = ref(db, `rooms/${state.roomCode}/topicControls/dealCount`);
+  await runTransaction(dRef, (cur) => {
+    const n = normDealCount(cur ?? 1);
+    return (n % 3) + 1;
+  });
+}
+
+/* ====== 手札（複数枚）ユーティリティ ====== */
+function getHandCards(handData){
+  if(!handData) return [];
+  if(Array.isArray(handData.cards)) return handData.cards.filter(n => typeof n === 'number');
+  if(typeof handData.card === 'number') return [handData.card];
+  return [];
+}
+function getHandCount(handData){ return getHandCards(handData).length; }
+
+/* ====== 既存：ヘルプ ====== */
 function renderHelpList(){
   helpBody.innerHTML = '';
   ROLE_HELP.forEach((r, idx) => {
@@ -928,245 +815,832 @@ function renderHelpList(){
       <div class="name">${r.name}</div>
       <div class="text">${r.text}</div>
     `;
-
     row.appendChild(card);
     row.appendChild(desc);
     helpBody.appendChild(row);
   });
 }
-function openHelp(){
-  renderHelpList();
-  helpBackdrop.classList.remove('hidden');
-}
-function closeHelp(){
-  helpBackdrop.classList.add('hidden');
-}
-helpBtn.addEventListener('click', () => {
-  if (joinBox.classList.contains('hidden')) openHelp();
-});
+function openHelp(){ renderHelpList(); helpBackdrop.classList.remove('hidden'); }
+function closeHelp(){ helpBackdrop.classList.add('hidden'); }
+helpBtn.addEventListener('click', () => { if (joinBox.classList.contains('hidden')) openHelp(); });
 btnHelpClose.addEventListener('click', closeHelp);
-helpBackdrop.addEventListener('click', (e) => {
-  if (e.target === helpBackdrop) closeHelp();
-});
+helpBackdrop.addEventListener('click', (e) => { if (e.target === helpBackdrop) closeHelp(); });
 
 let pendingSeatIndexToSteal = null;
 let pendingSeatPlayerIdToSteal = null;
 let isRenderingSeatTabs = false;
 let latestPlayers = [];
 
-let isDealAnimating = false;
-function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+/* ✅ 表カードが1枚でもあるか？（1枚目公開だけ確認するため） */
+function anyFaceUp(){
+  return Object.values(state.fieldCards || {}).some(fc => !!fc?.faceUp);
+}
 
 /* =========================
-   ★ 左上カード（マネー/サイレン）
+   ✅ 入力ポップ（カードごと）
    ========================= */
-const SIDE_CARD_SPECS = {
-  money: { front: 'moneyomote.png', back: 'moneyura.png' },
-  siren: { front: 'silenomote.png', back: 'silenura.png' },
-};
-
-function getSideArr(group){
-  const sc = state.sideCards || {};
-  const g = sc[group];
-
-  if (Array.isArray(g)){
-    return [!!g[0], !!g[1], !!g[2]];
-  }
-  if (g && typeof g === 'object'){
-    return [!!g[0], !!g[1], !!g[2]];
-  }
-  return [false, false, false];
+let editingKey = null;
+function noteKeyForHand(ownerId, value){
+  return `H:${ownerId}:${value}`;
 }
-
-function renderSideCards(){
-  if (joinBox.classList.contains('hidden')) sideCardsEl.classList.remove('hidden');
-
-  const money = getSideArr('money');
-  const siren = getSideArr('siren');
-
-  const makeRow = (rowEl, group, arr) => {
-    rowEl.innerHTML = '';
-    for (let i=0; i<3; i++){
-      const isFront = !!arr[i];
-      const spec = SIDE_CARD_SPECS[group];
-      const el = document.createElement('div');
-      el.className = 'side-card';
-      el.dataset.group = group;
-      el.dataset.idx = String(i);
-      el.style.backgroundImage = `url('${isFront ? spec.front : spec.back}')`;
-
-      el.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        await toggleSideCard(group, i);
-      });
-
-      rowEl.appendChild(el);
-    }
-  };
-
-  makeRow(moneyRowEl, 'money', money);
-  makeRow(sirenRowEl, 'siren', siren);
+function noteKeyForField(fieldCardId){
+  return `F:${fieldCardId}`;
 }
-
-async function toggleSideCard(group, idx){
-  if (!state.roomCode) return;
-  const curArr = getSideArr(group);
-  const cur = !!curArr[idx];
-  try{
-    await set(ref(db, `rooms/${state.roomCode}/sideCards/${group}/${idx}`), !cur);
-  }catch(e){}
+function openNotePopFor(key, label){
+  editingKey = key;
+  inputTitle.textContent = `カード入力：${label}`;
+  inputArea.value = String(state.notes?.[key] ?? '');
+  inputBackdrop.classList.remove('hidden');
+  setTimeout(()=>inputArea.focus(), 0);
 }
-
-async function ensureSideCardsExistsIfHost(){
-  if (!state.isHost || !state.roomCode) return;
-  const scRef = ref(db, `rooms/${state.roomCode}/sideCards`);
-  const snap = await get(scRef);
-  if (!snap.exists()){
-    await set(scRef, {
-      money: { 0:false, 1:false, 2:false },
-      siren: { 0:false, 1:false, 2:false }
-    });
+async function commitNoteAndClose(){
+  if(!state.roomCode || !editingKey) {
+    inputBackdrop.classList.add('hidden');
+    editingKey = null;
     return;
   }
-  const v = snap.val() || {};
-  const patch = {};
-  for (const g of ['money','siren']){
-    for (let i=0;i<3;i++){
-      const has = (v[g] && (v[g][i] !== undefined));
-      if (!has) patch[`${g}/${i}`] = false;
-    }
+  const text = String(inputArea.value ?? '').trim();
+  await set(ref(db, `rooms/${state.roomCode}/notes/${editingKey}`), text);
+  inputBackdrop.classList.add('hidden');
+  editingKey = null;
+}
+inputBackdrop.addEventListener('click', async (e) => {
+  if(e.target === inputBackdrop){
+    await commitNoteAndClose();
   }
-  if (Object.keys(patch).length){
-    try{ await update(scRef, patch); }catch(e){}
+});
+inputPop.addEventListener('click', (e)=>e.stopPropagation());
+
+function attachCardNoteByKey(el, noteKey){
+  const txt = String(state.notes?.[noteKey] ?? '').trim();
+  const old = el.querySelector('.card-note');
+  if(!txt){
+    if(old) old.remove();
+    return;
   }
+  const note = old || document.createElement('div');
+  note.className = 'card-note';
+  note.textContent = txt;
+  if(!old) el.appendChild(note);
 }
 
-function subscribeSideCards(){
-  const scRef = ref(db, `rooms/${state.roomCode}/sideCards`);
-  onValue(scRef, snap => {
-    state.sideCards = snap.val() || null;
-    renderSideCards();
+/* カード数字の見た目 */
+function hslToHex(h, s, l){
+  s/=100; l/=100;
+  const k = n => (n + h/30) % 12;
+  const a = s * Math.min(l, 1-l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+  const r = Math.round(255*f(0));
+  const g = Math.round(255*f(8));
+  const b = Math.round(255*f(4));
+  return '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function fnv1a32(str){
+  let h = 0x811c9dc5;
+  for (let i=0;i<str.length;i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function ensureCardStyles(){
+  if(state.cardStyle && Object.keys(state.cardStyle).length === 100) return;
+  const seed = (state.roomSeed ?? 123456789) >>> 0;
+
+  const hues = Array.from({length:100}, (_,i)=>i*(360/100));
+  const rnd = mulberry32(seed ^ 0xC0FFEE11);
+  for(let i=hues.length-1;i>0;i--){
+    const j = Math.floor(rnd()*(i+1));
+    [hues[i], hues[j]] = [hues[j], hues[i]];
+  }
+
+  const map = {};
+  for(let v=1; v<=100; v++){
+    const r2 = mulberry32(fnv1a32(`${seed}:rot:${v}`) ^ 0x9E3779B9);
+    const rot = (r2()*20 - 10);
+    const hue = hues[v-1];
+    const ink = hslToHex(hue, 92, 52);
+    map[v] = { ink, rot };
+  }
+  state.cardStyle = map;
+}
+function applyNumberStyle(el, value){
+  ensureCardStyles();
+  const st = state.cardStyle?.[value];
+  if(!st) return;
+  el.style.setProperty('--ink', st.ink);
+  el.style.setProperty('--rot', `${st.rot.toFixed(2)}deg`);
+}
+
+/* クリスタル */
+function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+function hexToRgb(hex){
+  const s = hex.replace('#','').trim();
+  const v = s.length===3 ? s.split('').map(c=>c+c).join('') : s;
+  const n = parseInt(v, 16);
+  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+}
+function mix(c1, c2, t){
+  const a = hexToRgb(c1), b = hexToRgb(c2);
+  const r = Math.round(a.r + (b.r-a.r)*t);
+  const g = Math.round(a.g + (b.g-a.g)*t);
+  const b2 = Math.round(a.b + (b.b-a.b)*t);
+  return '#' + [r,g,b2].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+/* =========================
+   ✅ 数字カード背景：1→100 を指定アンカーで補間
+   ========================= */
+const NUM_BG_ANCHORS = [
+  { v:100, hex:"#F2C94C" },
+  { v: 90, hex:"#E6B93E" },
+  { v: 80, hex:"#D9A63A" },
+  { v: 70, hex:"#C89634" },
+  { v: 60, hex:"#B8873A" },
+  { v: 50, hex:"#A6773F" },
+  { v: 40, hex:"#916C3C" },
+  { v: 30, hex:"#7C5D39" },
+  { v: 20, hex:"#665034" },
+  { v: 10, hex:"#4C3925" },
+  { v:  5, hex:"#3A2B1E" },
+  { v:  1, hex:"#241A12" },
+].sort((a,b)=>a.v-b.v);
+
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function rgbToHex(r,g,b){
+  return '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function mixHex(a, b, t){
+  const A = hexToRgb(a), B = hexToRgb(b);
+  const r = Math.round(A.r + (B.r - A.r) * t);
+  const g = Math.round(A.g + (B.g - A.g) * t);
+  const bb = Math.round(A.b + (B.b - A.b) * t);
+  return rgbToHex(r,g,bb);
+}
+function colorForValueByAnchors(value){
+  const v = clamp(Number(value)||1, 1, 100);
+
+  for(const p of NUM_BG_ANCHORS){
+    if(p.v === v) return p.hex;
+  }
+
+  let p0 = NUM_BG_ANCHORS[0];
+  let p1 = NUM_BG_ANCHORS[NUM_BG_ANCHORS.length-1];
+  for(let i=0;i<NUM_BG_ANCHORS.length-1;i++){
+    const a = NUM_BG_ANCHORS[i];
+    const b = NUM_BG_ANCHORS[i+1];
+    if(v >= a.v && v <= b.v){
+      p0 = a; p1 = b;
+      break;
+    }
+  }
+
+  const span = (p1.v - p0.v) || 1;
+  const t = (v - p0.v) / span;
+  return mixHex(p0.hex, p1.hex, t);
+}
+
+
+function applyCardBg(el, value){
+  const base = colorForValueByAnchors(value);
+
+  // ✅ 単色のみ（グラデ用変数は使わない）
+  el.style.setProperty('--bgSolid', base);
+
+  const rgb = hexToRgb(base);
+  const lumin = (0.2126*rgb.r + 0.7152*rgb.g + 0.0722*rgb.b) / 255;
+  el.style.setProperty('--numShadow', lumin < 0.28 ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.18)');
+}
+
+
+function hslToRgb(h, s, l){
+  s/=100; l/=100;
+  const k = n => (n + h/30) % 12;
+  const a = s * Math.min(l, 1-l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n)-3, Math.min(9-k(n), 1)));
+  return { r:Math.round(255*f(0)), g:Math.round(255*f(8)), b:Math.round(255*f(4)) };
+}
+function paletteFromSeed(seed, n=20){
+  const rnd = mulberry32(seed ^ 0xA53C9E37);
+  const offset = rnd()*360;
+  const sat = 92, light = 45;
+  const arr = [];
+  for(let i=0;i<n;i++){
+    const h = (offset + (360/n)*i) % 360;
+    const rgb = hslToRgb(h, sat, light);
+    arr.push('#' + [rgb.r,rgb.g,rgb.b].map(x=>x.toString(16).padStart(2,'0')).join(''));
+  }
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(rnd()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+
+let svgUid = 0;
+function crystalSVG(spec, size=18){
+  if(!spec || !spec.color || !spec.seed){
+    return `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="10" fill="#ddd"/></svg>`;
+  }
+  const uid = (++svgUid);
+  const idBase  = `base_${spec.seed}_${uid}`;
+  const idShade = `shade_${spec.seed}_${uid}`;
+  const idHi    = `hi_${spec.seed}_${uid}`;
+
+  const base = spec.color;
+  const c1 = mix(base, "#ffffff", 0.72);
+  const c2 = mix(base, "#ffffff", 0.10);
+  const c3 = mix(base, "#000000", 0.62);
+
+  const rnd = mulberry32(spec.seed);
+  const cx = 32, cy = 32;
+  const ptsN = 8;
+  const pts = [];
+  for(let i=0;i<ptsN;i++){
+    const ang = (-90 + (360/ptsN)*i) * Math.PI/180;
+    const rad = 24 + rnd()*8;
+    const jx = (rnd()-0.5)*4, jy = (rnd()-0.5)*4;
+    const x = cx + Math.cos(ang)*rad + jx;
+    const y = cy + Math.sin(ang)*rad + jy;
+    pts.push([x,y]);
+  }
+  const d = `M ${pts.map(p=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L ')} Z`;
+
+  const i1 = 1 + Math.floor(rnd()*2);
+  const i2 = i1 + 2;
+  const i3 = i2 + 2;
+  const p1 = pts[i1%ptsN], p2 = pts[i2%ptsN], p3 = pts[i3%ptsN];
+  const mid = [(p2[0]+cx)/2, (p2[1]+cy)/2];
+  const shadeD = `M ${p1[0].toFixed(1)} ${p1[1].toFixed(1)} L ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} L ${p3[0].toFixed(1)} ${p3[1].toFixed(1)} L ${mid[0].toFixed(1)} ${mid[1].toFixed(1)} Z`;
+
+  const hx = 18 + rnd()*6;
+  const hy = 14 + rnd()*6;
+  const hiD = `
+    M ${hx.toFixed(1)} ${hy.toFixed(1)}
+    C ${(hx-6).toFixed(1)} ${(hy+10).toFixed(1)} ${(hx-2).toFixed(1)} ${(hy+20).toFixed(1)} ${(hx+2).toFixed(1)} ${(hy+26).toFixed(1)}
+    C ${(hx+6).toFixed(1)} ${(hy+34).toFixed(1)} ${(hx+3).toFixed(1)} ${(hy+40).toFixed(1)} ${(hx-2).toFixed(1)} ${(hy+44).toFixed(1)}
+    C ${(hx-4).toFixed(1)} ${(hy+48).toFixed(1)} ${(hx+2).toFixed(1)} ${(hy+50).toFixed(1)} ${(hx+8).toFixed(1)} ${(hy+48).toFixed(1)}
+    C ${(hx+16).toFixed(1)} ${(hy+44).toFixed(1)} ${(hx+14).toFixed(1)} ${(hy+34).toFixed(1)} ${(hx+12).toFixed(1)} ${(hy+26).toFixed(1)}
+    C ${(hx+10).toFixed(1)} ${(hy+18).toFixed(1)} ${(hx+14).toFixed(1)} ${(hy+12).toFixed(1)} ${(hx+12).toFixed(1)} ${(hy+8).toFixed(1)}
+    C ${(hx+10).toFixed(1)} ${(hy+4).toFixed(1)} ${(hx+4).toFixed(1)} ${(hy+4).toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)} Z
+  `;
+
+  return `
+  <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+    <defs>
+      <linearGradient id="${idBase}" x1="14" y1="8" x2="50" y2="58" gradientUnits="userSpaceOnUse">
+        <stop offset="0"   stop-color="${c1}" stop-opacity=".95"/>
+        <stop offset=".6"  stop-color="${c2}" stop-opacity=".42"/>
+        <stop offset="1"   stop-color="${c3}" stop-opacity=".16"/>
+      </linearGradient>
+      <linearGradient id="${idShade}" x1="42" y1="18" x2="28" y2="58" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="${c3}" stop-opacity=".20"/>
+        <stop offset="1" stop-color="${c3}" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="${idHi}" x1="22" y1="14" x2="32" y2="46" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stop-color="#ffffff" stop-opacity=".78"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+
+    <path d="${d}"
+      fill="url(#${idBase})"
+      stroke="${mix(base, "#ffffff", 0.55)}" stroke-opacity=".55" stroke-width="1.6"
+      stroke-linejoin="round"/>
+    <path d="${shadeD}" fill="url(#${idShade})"/>
+    <path d="${hiD}" fill="url(#${idHi})" opacity=".92"/>
+  </svg>`;
+}
+
+function cryptoUint32(){
+  const u = new Uint32Array(1);
+  crypto.getRandomValues(u);
+  return u[0] >>> 0;
+}
+
+async function ensureRoomSeed(){
+  if(!state.roomCode) return null;
+  const seedRef = ref(db, `rooms/${state.roomCode}/seed`);
+  const res = await runTransaction(seedRef, (cur) => {
+    if (cur === null || cur === undefined) return cryptoUint32() || 123456789;
+    return cur;
+  });
+  state.roomSeed = (res && res.snapshot) ? (res.snapshot.val() >>> 0) : state.roomSeed;
+  ensureCardStyles();
+  return state.roomSeed;
+}
+
+async function ensureCrystalForPlayer(playerId){
+  if(!state.roomCode) return;
+  const seed = state.roomSeed ?? await ensureRoomSeed();
+  if(seed == null) return;
+
+  const palette = paletteFromSeed(seed, 20);
+  const crystalsRef = ref(db, `rooms/${state.roomCode}/crystals`);
+
+  await runTransaction(crystalsRef, (cur) => {
+    cur = cur || {};
+    if (cur[playerId]) return cur;
+
+    const used = new Set(
+      Object.values(cur)
+        .filter(v => v && typeof v === 'object' && v.color)
+        .map(v => v.color)
+    );
+    const color = palette.find(c => !used.has(c)) || palette[0];
+    cur[playerId] = { color, seed: fnv1a32(`${seed}:${playerId}`) };
+    return cur;
   });
 }
 
-/* =========================
-   ★ 公開フェーズ（赤チップ全消え→赤★1→★2→…）
-   ========================= */
-function getMaxPlayers(){
-  const n = Number(state.room?.maxPlayers || 0);
-  return Number.isFinite(n) ? n : 0;
+/* 提出人数チェック（配布枚数ぶん提出が必要） */
+function expectedPlayerIds(){
+  return (latestPlayers || []).map(p=>p.id).filter(Boolean);
 }
-function allRedChipIds(n){
-  const out = [];
-  for (let i=1; i<=n; i++) out.push(`赤_${i}`);
-  return out;
+function dealCountAtStart(){
+  const v = state.room?.dealCountAtStart;
+  if(v != null) return normDealCount(v);
+  return topicControls().dealCount;
 }
-function getRevealCurrentPid(){
-  const r = state.reveal;
-  if (!r || !r.active || !Array.isArray(r.order)) return null;
-  const t = Number(r.turn || 0);
-  return r.order[t] || null;
+function allSubmitted(){
+  const ids = expectedPlayerIds();
+  if(!ids.length) return false;
+
+  const need = dealCountAtStart();
+  const entries = Object.values(state.fieldCards || {}).filter(Boolean);
+
+  return ids.every(pid => {
+    const n = entries.filter(fc => fc.ownerId === pid).length;
+    return n >= need;
+  });
 }
-function isMyRevealTurn(){
-  const cur = getRevealCurrentPid();
-  if (!cur) return false;
-  if (cur !== state.userId) return false;
-  if (state.reveal?.revealed?.[state.userId]) return false;
-  return true;
+
+/* お題 */
+const TOPIC_POOL = ["ああ","いい","うう","ええ","おお"];
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+/* ✅ ハートSVG */
+function heartSVG(filled){
+  const fill = filled ? '#d946ef' : '#9ca3af';
+  return `
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M12 21.1C12 21.1 3.6 16 2.4 10.2C1.6 6.5 4 3.6 7.4 3.6C9.5 3.6 11.1 4.8 12 6.2C12.9 4.8 14.5 3.6 16.6 3.6C20 3.6 22.4 6.5 21.6 10.2C20.4 16 12 21.1 12 21.1Z"
+      fill="${fill}"
+      stroke="#111"
+      stroke-width="1.8"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+  </svg>`;
 }
-async function revealMyHand(){
-  if (!state.roomCode) return;
-  if (!isMyRevealTurn()) return;
 
-  const revealRef = ref(db, `rooms/${state.roomCode}/reveal`);
-  const snap = await get(revealRef);
-  const r = snap.val();
-  if (!r || !r.active || !Array.isArray(r.order)) return;
+function renderTopic(){
+  const old = plazaEl.querySelector('.topic-bar');
+  if(old) old.remove();
+  if(!state.topic || !state.topic.text) return;
 
-  const order = r.order;
-  const turn = Number(r.turn || 0);
-  const curPid = order[turn];
-  if (curPid !== state.userId) return;
+  const bar = document.createElement('div');
+  bar.className = 'topic-bar';
 
-  const revealed = r.revealed || {};
-  if (revealed[state.userId]) return;
+  const t = document.createElement('div');
+  t.className = 'topic-card';
+  t.textContent = String(state.topic.text);
 
-  revealed[state.userId] = true;
+  const ui = document.createElement('div');
+  ui.className = 'topic-ui';
 
-  let next = turn + 1;
-  while (next < order.length && revealed[order[next]]) next++;
+  const tc = topicControls();
 
-  const patch = { revealed };
-  if (next >= order.length){
-    patch.active = false;
-    patch.turn = order.length;
-    patch.endedAt = Date.now();
-  } else {
-    patch.turn = next;
+  const heartRow = document.createElement('div');
+  heartRow.className = 'heart-row';
+  for(let i=0;i<3;i++){
+    const b = document.createElement('button');
+    b.className = 'heart-btn';
+    b.type = 'button';
+    b.setAttribute('aria-label', `heart ${i+1}`);
+    b.innerHTML = heartSVG(!!tc.hearts[i]);
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await toggleHeart(i);
+    });
+    heartRow.appendChild(b);
   }
 
-  await update(revealRef, patch);
+  const stack = document.createElement('div');
+  stack.className = 'deal-stack';
+  const n = tc.dealCount;
+  for(let i=0;i<n;i++){
+    const c = document.createElement('div');
+    c.className = 'deal-card';
+    c.style.left = `${i*10}px`;
+    c.style.zIndex = String(10+i);
+    stack.appendChild(c);
+  }
+
+  const plus = document.createElement('button');
+  plus.className = 'deal-plus';
+  plus.type = 'button';
+  plus.textContent = '+1';
+  plus.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await incDealCount();
+  });
+
+  ui.appendChild(heartRow);
+  ui.appendChild(stack);
+  ui.appendChild(plus);
+
+  bar.appendChild(t);
+  bar.appendChild(ui);
+
+  plazaEl.appendChild(bar);
 }
 
-let _startingReveal = false;
-async function maybeStartRevealPhaseIfReady(){
-  if (_startingReveal) return;
-  if (!state.isHost || !state.roomCode) return;
+/* ===== 広場カード ===== */
+let localDraggingFieldId = null;
+let fieldDragOffset = {dx:0, dy:0};
+let rafPending = false;
+let pendingFieldXY = null;
 
-  const n = getMaxPlayers();
-  if (!n) return;
+let fieldPointer = null;
 
-  const revealRef = ref(db, `rooms/${state.roomCode}/reveal`);
-  const curSnap = await get(revealRef);
-  const cur = curSnap.val();
-  if (cur && cur.startedAt) return;
+const CLICK_DELAY_MS = 220;
+const clickTimers = new Map();
 
-  const owners = state.chipOwners || {};
-  const redIds = allRedChipIds(n);
-  const unowned = redIds.filter(id => !owners[id]);
-  if (unowned.length > 0) return;
-
-  _startingReveal = true;
-  try{
-    const entries = [];
-    redIds.forEach(id => {
-      const owner = owners[id];
-      if (!owner) return;
-      const parts = String(id).split('_');
-      const i = Number(parts[1] || 0);
-      const stars = ((i - 1) % 6) + 1;
-      entries.push({ owner, stars, i });
-    });
-    entries.sort((a,b) => (a.stars - b.stars) || (a.i - b.i));
-
-    const seen = new Set();
-    const order = [];
-    for (const e of entries){
-      if (!e.owner) continue;
-      if (seen.has(e.owner)) continue;
-      seen.add(e.owner);
-      order.push(e.owner);
-    }
-
-    if (!order.length) return;
-
-    await set(revealRef, {
-      active: true,
-      order,
-      turn: 0,
-      revealed: {},
-      startedAt: Date.now()
-    });
-  } finally {
-    _startingReveal = false;
+function cancelPendingClick(cardId){
+  const t = clickTimers.get(cardId);
+  if(t){
+    clearTimeout(t);
+    clickTimers.delete(cardId);
   }
 }
+function scheduleSingleClick(cardId, fn){
+  cancelPendingClick(cardId);
+  const tid = setTimeout(() => {
+    clickTimers.delete(cardId);
+    fn();
+  }, CLICK_DELAY_MS);
+  clickTimers.set(cardId, tid);
+}
 
-myHandEl.addEventListener('click', () => {
-  if (isMyRevealTurn()) revealMyHand();
+function plazaRect(){ return plazaEl.getBoundingClientRect(); }
+function setFieldCardElPos(el, x, y){
+  el.style.left = `${(x*100).toFixed(3)}%`;
+  el.style.top  = `${(y*100).toFixed(3)}%`;
+}
+
+/* ✅ 1枚目公開確認ダイアログ */
+let pendingRevealId = null;
+function closeRevealDialog(){
+  revealDialog.classList.add('hidden');
+  pendingRevealId = null;
+}
+function openRevealDialog(cardId, label){
+  pendingRevealId = cardId;
+  revealMessage.textContent = `「${label}」を表にしますか？`;
+  revealDialog.classList.remove('hidden');
+}
+revealDialog.addEventListener('click', (e) => {
+  if(e.target === revealDialog) closeRevealDialog();
+});
+btnRevealNo.addEventListener('click', (e) => {
+  e.stopPropagation();
+  closeRevealDialog();
+});
+btnRevealYes.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if(!pendingRevealId || !state.roomCode) return closeRevealDialog();
+  const id = pendingRevealId;
+  closeRevealDialog();
+  await revealCard(id);
 });
 
+function renderFieldCards(){
+  plazaEl.innerHTML = '';
+  renderTopic();
+
+  const entries = Object.values(state.fieldCards || {}).filter(Boolean);
+  entries.sort((a,b)=>(a?.z||0)-(b?.z||0));
+
+  for(const fc of entries){
+    const el = document.createElement('div');
+    el.className = 'field-card';
+    el.dataset.id = fc.id;
+
+    const faceUp = !!fc.faceUp;
+    if(faceUp){
+      el.classList.add('faceup');
+      const v = Number(fc.value);
+
+      applyCardBg(el, v); // ✅ 背景（1→100アンカー補間）
+
+      const s = document.createElement('span');
+      s.className = 'card-num';
+      s.textContent = String(fc.value ?? '');
+      applyNumberStyle(s, v);
+      el.appendChild(s);
+    }else{
+      el.textContent = '';
+      el.classList.add('back');
+    }
+
+    const x = clamp01(Number(fc.x ?? 0.5));
+    const y = clamp01(Number(fc.y ?? 0.5));
+    setFieldCardElPos(el, x, y);
+
+    el.style.zIndex = String((fc.z ?? 1));
+
+    const spec = state.crystals?.[fc.ownerId];
+    const c = document.createElement('div');
+    c.className = 'card-crystal';
+    c.innerHTML = crystalSVG(spec, 18);
+    el.appendChild(c);
+
+    attachCardNoteByKey(el, noteKeyForField(fc.id));
+
+    el.addEventListener('pointerdown', (e) => {
+      if(!state.roomCode) return;
+
+      localDraggingFieldId = fc.id;
+      fieldPointer = { id: fc.id, downX: e.clientX, downY: e.clientY, moved:false };
+
+      const r = plazaRect();
+      const px = r.left + x * r.width;
+      const py = r.top  + y * r.height;
+      fieldDragOffset.dx = e.clientX - px;
+      fieldDragOffset.dy = e.clientY - py;
+
+      el.setPointerCapture(e.pointerId);
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if(localDraggingFieldId !== fc.id) return;
+
+      if(fieldPointer && !fieldPointer.moved){
+        const dx = Math.abs(e.clientX - fieldPointer.downX);
+        const dy = Math.abs(e.clientY - fieldPointer.downY);
+        if(dx < 4 && dy < 4) return;
+        fieldPointer.moved = true;
+
+        cancelPendingClick(fc.id);
+
+        if(state.roomCode){
+          update(ref(db, `rooms/${state.roomCode}/fieldCards/${fc.id}`), { z: Date.now() });
+        }
+      }
+
+      if(!fieldPointer || !fieldPointer.moved) return;
+
+      const r = plazaRect();
+      const nx = clamp01((e.clientX - r.left - fieldDragOffset.dx) / r.width);
+      const ny = clamp01((e.clientY - r.top  - fieldDragOffset.dy) / r.height);
+
+      setFieldCardElPos(el, nx, ny);
+
+      pendingFieldXY = { id: fc.id, x: nx, y: ny };
+      if(!rafPending){
+        rafPending = true;
+        requestAnimationFrame(() => {
+          rafPending = false;
+          if(!pendingFieldXY || !state.roomCode) return;
+          const p = pendingFieldXY;
+          pendingFieldXY = null;
+          update(ref(db, `rooms/${state.roomCode}/fieldCards/${p.id}`), { x: p.x, y: p.y });
+        });
+      }
+    });
+
+    el.addEventListener('pointerup', (e) => {
+      if(localDraggingFieldId !== fc.id) return;
+      localDraggingFieldId = null;
+      try{ el.releasePointerCapture(e.pointerId); }catch{}
+    });
+
+    el.addEventListener('pointercancel', () => {
+      if(localDraggingFieldId === fc.id) localDraggingFieldId = null;
+      fieldPointer = null;
+      cancelPendingClick(fc.id);
+    });
+
+    el.addEventListener('click', () => {
+      if(!state.roomCode) return;
+      if(fc.ownerId !== state.userId) return;
+      if(fieldPointer?.id === fc.id && fieldPointer?.moved) return;
+
+      scheduleSingleClick(fc.id, () => {
+        openNotePopFor(noteKeyForField(fc.id), `場 ${fc.value}`);
+      });
+    });
+
+    el.addEventListener('dblclick', async () => {
+      if(!state.roomCode) return;
+
+      cancelPendingClick(fc.id);
+
+      if(!allSubmitted()) return;
+      if(fc.faceUp) return;
+      if(fieldPointer?.id === fc.id && fieldPointer?.moved) return;
+
+      if(!anyFaceUp()){
+        openRevealDialog(fc.id, `カード ${fc.value}`);
+        return;
+      }
+      await revealCard(fc.id);
+    });
+
+    plazaEl.appendChild(el);
+
+    el.addEventListener('pointerup', () => {
+      if(fieldPointer?.id === fc.id){
+        setTimeout(() => {
+          if(fieldPointer?.id === fc.id) fieldPointer = null;
+        }, 0);
+      }
+    });
+  }
+}
+
+async function revealCard(cardId){
+  const cardRef = ref(db, `rooms/${state.roomCode}/fieldCards/${cardId}`);
+  await update(ref(db, `rooms/${state.roomCode}`), { revealStarted: true });
+  await update(cardRef, { faceUp: true });
+}
+
+/* =========================================================
+   ✅ 手札→広場ドラッグ（複数対応）
+   ✅ ゴースト二重（2枚存在）根絶：
+      - クリック判定とドラッグ開始を分離（動いた時だけゴースト生成）
+      - 場カード生成と手札削除を「root updateの同時更新」にして、
+        一瞬の二重表示（手札に残ったまま場に出る）を消す
+   ========================================================= */
+let handDrag = null;
+const HAND_DRAG_THRESHOLD = 6;
+
+function createHandGhost(value){
+  const g = document.createElement('div');
+  g.className = 'hand-drag-ghost';
+
+  applyCardBg(g, Number(value)); // ✅ ゴーストも同じ背景に
+
+  const s = document.createElement('span');
+  s.className = 'card-num';
+  s.textContent = String(value);
+  applyNumberStyle(s, Number(value));
+  g.appendChild(s);
+
+  document.body.appendChild(g);
+  return g;
+}
+
+function cleanupHandDrag(reason=''){
+  if(!handDrag) return;
+
+  const el = handDrag.el;
+  if(el){
+    el.style.opacity = '';
+    try{
+      if(handDrag.pointerId != null) el.releasePointerCapture(handDrag.pointerId);
+    }catch{}
+  }
+
+  const g = handDrag.ghost;
+  if(g){
+    try{ g.remove(); }catch{}
+  }
+
+  handDrag = null;
+}
+
+function moveHandGhost(e){
+  if(!handDrag || !handDrag.ghost) return;
+  const cx = e.clientX - handDrag.offX;
+  const cy = e.clientY - handDrag.offY;
+  handDrag.ghost.style.left = `${cx}px`;
+  handDrag.ghost.style.top  = `${cy}px`;
+}
+
+function beginHandPointer(cardEl, value, e){
+  if(!state.roomCode) return;
+
+  cleanupHandDrag('start-over');
+
+  handDrag = {
+    el: cardEl,
+    value,
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    offX: 0,
+    offY: 0,
+    ghost: null,
+    dragging: false
+  };
+
+  cardEl.setPointerCapture(e.pointerId);
+}
+
+function ensureActualHandDrag(e){
+  if(!handDrag || handDrag.dragging) return;
+  const dx = Math.abs(e.clientX - handDrag.startX);
+  const dy = Math.abs(e.clientY - handDrag.startY);
+  if(dx < HAND_DRAG_THRESHOLD && dy < HAND_DRAG_THRESHOLD) return;
+
+  const cardEl = handDrag.el;
+  const r = cardEl.getBoundingClientRect();
+
+  handDrag.offX = e.clientX - (r.left + r.width/2);
+  handDrag.offY = e.clientY - (r.top  + r.height/2);
+
+  handDrag.ghost = createHandGhost(handDrag.value);
+  handDrag.dragging = true;
+
+  cardEl.style.opacity = '0';
+
+  moveHandGhost(e);
+}
+
+function moveHandPointer(e){
+  if(!handDrag) return;
+  ensureActualHandDrag(e);
+  if(handDrag.dragging) moveHandGhost(e);
+}
+
+async function endHandPointer(e){
+  if(!handDrag) return { type:'none' };
+
+  const hd = handDrag;
+
+  if(!hd.dragging){
+    cleanupHandDrag('click');
+    return { type:'click', value: hd.value };
+  }
+
+  const value = hd.value;
+  const dropX = e.clientX - hd.offX;
+  const dropY = e.clientY - hd.offY;
+
+  cleanupHandDrag('drop');
+
+  const r = plazaRect();
+  const inside = (dropX >= r.left && dropX <= r.right && dropY >= r.top && dropY <= r.bottom);
+
+  if(!inside || !state.roomCode){
+    return { type:'cancel', value };
+  }
+
+  const x = clamp01((dropX - r.left) / r.width);
+  const y = clamp01((dropY - r.top ) / r.height);
+
+  const listRef = ref(db, `rooms/${state.roomCode}/fieldCards`);
+  const newRef = push(listRef);
+  const id = newRef.key;
+
+  const handNoteKey = noteKeyForHand(state.userId, value);
+  const copiedText = String(state.notes?.[handNoteKey] ?? '').trim();
+
+  const hRef = ref(db, `rooms/${state.roomCode}/hands/${state.userId}`);
+  const snap = await get(hRef);
+  const curHand = snap.val();
+  const arr = getHandCards(curHand).slice();
+  const idx = arr.indexOf(value);
+  if(idx >= 0) arr.splice(idx, 1);
+
+  const base = `rooms/${state.roomCode}`;
+  const updates = {};
+  updates[`${base}/fieldCards/${id}`] = {
+    id,
+    ownerId: state.userId,
+    value,
+    x, y,
+    z: Date.now(),
+    faceUp: false
+  };
+  if(copiedText){
+    updates[`${base}/notes/${noteKeyForField(id)}`] = copiedText;
+  }
+  updates[`${base}/hands/${state.userId}`] = (arr.length ? { cards: arr } : null);
+
+  await update(ref(db), updates);
+
+  return { type:'drop', value, fieldId:id };
+}
+
+window.addEventListener('blur', () => cleanupHandDrag('blur'));
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState !== 'visible') cleanupHandDrag('hidden');
+});
+
+/* ===== 既存ロジック ===== */
 function generateRoomCode(length = 6){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
@@ -1206,1589 +1680,20 @@ function updateHostUI(){
     startPop.classList.add('hidden');
   }
   helpBtn.classList.add('visible');
-
-  chipPool.classList.toggle('hidden', joinBox.classList.contains('hidden') ? false : true);
-  sideCardsEl.classList.toggle('hidden', joinBox.classList.contains('hidden') ? false : true);
-}
-
-function setOwnCircleVisible(visible){
-  state.ownCircleVisible = !!visible;
-  const oc = document.getElementById('ownCircle');
-  if (oc){
-    oc.classList.toggle('hidden', !state.ownCircleVisible);
-  }
-}
-
-function updateOwnCircleToFit(){
-  const wrap = document.querySelector(`.player-wrap[data-pid="${state.userId}"]`);
-  if (!wrap) return;
-  const oc = wrap.querySelector('#ownCircle');
-  if (!oc) return;
-
-  const pad = 18;
-  const w = Math.max(20, wrap.offsetWidth + pad);
-  const h = Math.max(20, wrap.offsetHeight + pad);
-
-  oc.style.setProperty('--oc-w', `${Math.round(w)}px`);
-  oc.style.setProperty('--oc-h', `${Math.round(h)}px`);
-  oc.classList.toggle('hidden', !state.ownCircleVisible);
-}
-window.addEventListener('resize', () => requestAnimationFrame(updateOwnCircleToFit));
-
-/* =========================
-   ★ チップSVG（裏向き対応）
-   ========================= */
-const CHIP_COLORS = [
-  { key:"白", fill:"#F7F7F7", stroke:"#CFCFCF" },
-  { key:"黄", fill:"#FFD84A", stroke:"#C9A600" },
-  { key:"オレンジ", fill:"#FF9A2F", stroke:"#D06B00" },
-  { key:"赤", fill:"#FF4B4B", stroke:"#C82828" },
-];
-const CHIP_COLOR_MAP = Object.fromEntries(CHIP_COLORS.map(c => [c.key, c]));
-
-const toRad = d => d * Math.PI / 180;
-function polar(cx, cy, r, angRad){
-  return { x: cx + Math.cos(angRad)*r, y: cy + Math.sin(angRad)*r };
-}
-function starPolygonPoints(cx, cy, outerR, innerR, spikes = 5, rotationDeg = -90){
-  const pts = [];
-  const rot = rotationDeg * Math.PI / 180;
-  const step = Math.PI / spikes;
-  for(let i=0;i<spikes*2;i++){
-    const r = (i % 2 === 0) ? outerR : innerR;
-    const a = rot + i * step;
-    pts.push((cx + Math.cos(a)*r).toFixed(2) + "," + (cy + Math.sin(a)*r).toFixed(2));
-  }
-  return pts.join(" ");
-}
-function starPositionsInsideCircle(cx, cy, n, ringR){
-  if(n === 1) return [{ x: cx, y: cy }];
-  const pos = [];
-  const startDeg = -90;
-  for(let i=0;i<n;i++){
-    const a = (startDeg + (360/n)*i) * Math.PI/180;
-    pos.push({ x: cx + Math.cos(a)*ringR, y: cy + Math.sin(a)*ringR });
-  }
-  return pos;
-}
-function spokeSectorsData(cx, cy, rInnerEdge, rOuterEdge, spokeThickness, stepDeg = 60, startDeg = -90){
-  const midR = (rInnerEdge + rOuterEdge) / 2;
-  const halfW = spokeThickness / 2;
-
-  let halfAngle = Math.asin(Math.min(1, halfW / Math.max(1e-6, midR)));
-  halfAngle = Math.min(halfAngle, Math.PI/2 - 1e-3);
-
-  const out = [];
-  let idx = 0;
-  for(let deg = startDeg; deg < startDeg + 360; deg += stepDeg){
-    const a = toRad(deg);
-    const a1 = a - halfAngle;
-    const a2 = a + halfAngle;
-
-    const pIn1  = polar(cx, cy, rInnerEdge, a1);
-    const pOut1 = polar(cx, cy, rOuterEdge, a1);
-    const pOut2 = polar(cx, cy, rOuterEdge, a2);
-    const pIn2  = polar(cx, cy, rInnerEdge, a2);
-
-    const d = [
-      `M ${pIn1.x.toFixed(2)} ${pIn1.y.toFixed(2)}`,
-      `L ${pOut1.x.toFixed(2)} ${pOut1.y.toFixed(2)}`,
-      `A ${rOuterEdge.toFixed(2)} ${rOuterEdge.toFixed(2)} 0 0 1 ${pOut2.x.toFixed(2)} ${pOut2.y.toFixed(2)}`,
-      `L ${pIn2.x.toFixed(2)} ${pIn2.y.toFixed(2)}`,
-      `A ${rInnerEdge.toFixed(2)} ${rInnerEdge.toFixed(2)} 0 0 0 ${pIn1.x.toFixed(2)} ${pIn1.y.toFixed(2)}`,
-      `Z`
-    ].join(" ");
-
-    out.push({ d, angle: a, idx });
-    idx++;
-  }
-  return out;
-}
-function markerOffsets(lineCount, spokeThickness){
-  if(lineCount <= 0) return [];
-  const spread = spokeThickness * 0.25;
-  if(lineCount === 1) return [0];
-  if(lineCount === 2) return [-spread * 0.75, spread * 0.75];
-  return [-spread, 0, spread];
-}
-function markerLinesMarkup(spokesData, cx, cy, rInnerEdge, rOuterEdge, spokeThickness, lineCount, lineColor, clipId){
-  if(lineCount <= 0) return "";
-  const offsets = markerOffsets(lineCount, spokeThickness);
-  const sw = 2.2;
-
-  const segs = [];
-  for(const sp of spokesData){
-    const a = sp.angle;
-    for(const t of offsets){
-      const daIn  = t / rInnerEdge;
-      const daOut = t / rOuterEdge;
-
-      const pIn  = polar(cx, cy, rInnerEdge, a + daIn);
-      const pOut = polar(cx, cy, rOuterEdge, a + daOut);
-
-      segs.push(
-        `<path d="M ${pIn.x.toFixed(2)} ${pIn.y.toFixed(2)} L ${pOut.x.toFixed(2)} ${pOut.y.toFixed(2)}"
-           fill="none" stroke="${lineColor}" stroke-width="${sw}"
-           stroke-linecap="round" stroke-linejoin="round" />`
-      );
-    }
-  }
-
-  return `<g clip-path="url(#${clipId})">${segs.join("")}</g>`;
-}
-
-function chipSVG(color, stars, uid, faceDown = false){
-  const { key, fill, stroke } = color;
-  const vb = 100;
-  const cx = 50, cy = 50;
-
-  const outerR = 46;
-  const outerStroke = 4;
-
-  const innerCircleR = 33;
-  const innerStroke = 2.2;
-
-  const spokeThickness = 16;
-
-  const rInnerEdge = innerCircleR + innerStroke/2;
-  const rOuterEdge = outerR - outerStroke/2;
-
-  const starOuter = 6.0;
-  const starInner = 2.6;
-  const starRingR = 12;
-
-  const maxRingR = Math.max(0, innerCircleR - (starOuter + 4 + innerStroke));
-  const ringR = Math.min(starRingR, maxRingR);
-
-  const starPts = starPolygonPoints(0, 0, starOuter, starInner);
-  const positions = starPositionsInsideCircle(cx, cy, stars, ringR);
-
-  const spokesData = spokeSectorsData(cx, cy, rInnerEdge, rOuterEdge, spokeThickness, 60, -90);
-  const spokesMarkup = spokesData.map(s => `<path d="${s.d}" fill="#111" />`).join("");
-
-  const lineCount =
-    (key === "黄") ? 1 :
-    (key === "オレンジ") ? 2 :
-    (key === "赤") ? 3 : 0;
-
-  const clipId = `spokes-clip-${uid}`;
-  const coloredLines = markerLinesMarkup(
-    spokesData, cx, cy, rInnerEdge, rOuterEdge, spokeThickness,
-    lineCount, fill, clipId
-  );
-
-  const shadow = `
-    <filter id="ds-${uid}" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1.2" stdDeviation="1.2" flood-color="#000" flood-opacity=".15"/>
-    </filter>
-  `;
-
-  const starFill = faceDown ? fill : "#111";
-  const starsMarkup = positions.map(p => (
-    `<polygon points="${starPts}" fill="${starFill}" transform="translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})" />`
-  )).join("");
-
-  const innerFill = faceDown ? "#111" : "none";
-
-  return `
-    <svg viewBox="0 0 ${vb} ${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="チップ">
-      <defs>
-        ${shadow}
-        <clipPath id="${clipId}">
-          ${spokesData.map(s => `<path d="${s.d}"></path>`).join("")}
-        </clipPath>
-      </defs>
-
-      <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${fill}" filter="url(#ds-${uid})"/>
-      ${spokesMarkup}
-      ${coloredLines}
-      <circle cx="${cx}" cy="${cy}" r="${outerR}" fill="none" stroke="${stroke}" stroke-width="${outerStroke}"/>
-      <circle cx="${cx}" cy="${cy}" r="${innerCircleR}" fill="${innerFill}" stroke="#111" stroke-width="${innerStroke}"/>
-      ${starsMarkup}
-    </svg>
-  `;
-}
-
-/* =========================
-   ★ チッププール生成
-   ========================= */
-let chipUid = 0;
-let chipState = {
-  builtFor: null,
-  chips: [],
-  draggingId: null,
-  dragOffX: 0,
-  dragOffY: 0,
-  raf: 0,
-  dragMeta: {},
-  press: null,
-  lastTap: {}
-};
-
-const DOUBLE_TAP_MS = 320;
-const TAP_SLOP_PX   = 6;
-const DRAG_START_PX = 7;
-
-function getChipD(){
-  const v = getComputedStyle(document.documentElement).getPropertyValue('--chip-d').trim();
-  const n = Number(String(v).replace('px',''));
-  return Number.isFinite(n) && n > 6 ? n : 24;
-}
-function setChipDFromTag(){
-  const tag = document.querySelector('.player-tag');
-  if (!tag) return;
-  const h = tag.getBoundingClientRect().height;
-  if (h && h > 10){
-    document.documentElement.style.setProperty('--chip-d', `${Math.round(h)}px`);
-  }
-}
-function clamp(v, min, max){
-  return Math.max(min, Math.min(max, v));
-}
-function getChipById(id){
-  return chipState.chips.find(c => c.id === id) || null;
-}
-function buildChipSetForPlayers(playerCount){
-  const n = Math.max(0, Number(playerCount || 0));
-  const chips = [];
-  for (let i=1; i<=n; i++){
-    const stars = ((i - 1) % 6) + 1;
-    for (const c of CHIP_COLORS){
-      chips.push({
-        id: `${c.key}_${i}`,
-        colorKey: c.key,
-        stars,
-        color: c
-      });
-    }
-  }
-  return chips;
-}
-
-/* ★追加：人数に応じてチッププールサイズを可変に */
-function resizeChipPoolForPlayers(n){
-  const d = getChipD();
-  const gap = Math.max(2, Math.round(d * 0.18));
-  const pad = 10;
-
-  const cols = Math.max(1, Number(n || 1));
-  const rows = 4;
-
-  const innerW = pad*2 + cols*d + (cols-1)*gap;
-  const innerH = pad*2 + rows*d + (rows-1)*gap;
-
-  chipPool.style.width  = `${Math.round(innerW)}px`;
-  chipPool.style.height = `${Math.round(innerH)}px`;
-}
-
-/* ★変更：初期配置を「上段 白1..N / 下段 黄 / 下段 オレンジ / 下段 赤」に */
-function layoutChipPositions(chips){
-  const d = getChipD();
-  const gap = Math.max(2, Math.round(d * 0.18));
-  const pad = 10;
-
-  const rect = chipPoolArea.getBoundingClientRect();
-  const W = rect.width;
-  const H = rect.height;
-
-  const rowOrder = { "白":0, "黄":1, "オレンジ":2, "赤":3 };
-
-  chips.forEach((ch) => {
-    const [colorKey, numStr] = String(ch.id).split('_');
-    const col = Math.max(0, (Number(numStr||1) - 1));
-    const row = rowOrder[colorKey] ?? 0;
-
-    const x = pad + col * (d + gap);
-    const y = pad + row * (d + gap);
-
-    ch.x = clamp(x, 0, W - d);
-    ch.y = clamp(y, 0, H - d);
-  });
-}
-
-function applyChipTransform(ch){
-  if (!ch.el) return;
-  ch.el.style.transform = `translate(${ch.x}px, ${ch.y}px)`;
-}
-function attachChipToPool(ch){
-  if (!ch?.el) return;
-  if (ch.el.parentNode !== chipPoolArea) chipPoolArea.appendChild(ch.el);
-  ch.el.classList.remove('chip-floating');
-  ch.el.style.position = 'absolute';
-  ch.el.style.left = '';
-  ch.el.style.top  = '';
-  ch.el.style.transform = `translate(${ch.x}px, ${ch.y}px)`;
-  ch.el.style.zIndex = '';
-  ch.el.style.pointerEvents = 'auto';
-}
-function attachChipToDragLayer(ch){
-  if (!ch?.el) return;
-  if (ch.el.parentNode !== dragLayer) dragLayer.appendChild(ch.el);
-  ch.el.classList.add('chip-floating');
-  ch.el.style.position = 'fixed';
-  ch.el.style.transform = '';
-  ch.el.style.zIndex = '10000';
-  ch.el.style.pointerEvents = 'none';
-}
-function isPointInRect(x, y, r){
-  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-}
-
-/* ★ owncircle 当たり判定（楕円） */
-function isPointInOwnCircle(x, y){
-  const oc = document.getElementById('ownCircle');
-  if (!oc || oc.classList.contains('hidden')) return false;
-  const r = oc.getBoundingClientRect();
-  const cx = r.left + r.width/2;
-  const cy = r.top  + r.height/2;
-  const rx = Math.max(1, r.width/2);
-  const ry = Math.max(1, r.height/2);
-  const dx = (x - cx) / rx;
-  const dy = (y - cy) / ry;
-  return (dx*dx + dy*dy) <= 1;
-}
-
-function applyChipOwnersToPool(){
-  const owners = state.chipOwners || {};
-  chipState.chips.forEach(ch => {
-    const owner = owners[ch.id];
-    if (owner){
-      ch.el.style.display = 'none';
-    } else {
-      ch.el.style.display = '';
-    }
-  });
-}
-function applyChipFacesToPool(){
-  if (!chipState.chips.length) return;
-  chipState.chips.forEach(ch => {
-    if (state.chipOwners && state.chipOwners[ch.id]) return;
-    if (chipState.draggingId === ch.id) return;
-    const fd = !!state.chipFaceDown?.[ch.id];
-    if (ch.faceDown === fd) return;
-    ch.faceDown = fd;
-    chipUid++;
-    if (ch.el) ch.el.innerHTML = chipSVG(ch.color, ch.stars, chipUid, fd);
-  });
-}
-
-/* ★ 所有チップ描画など */
-function parseChipId(chipId){
-  const [colorKey, numStr] = String(chipId || '').split('_');
-  const n = Number(numStr || 0);
-  const color = CHIP_COLOR_MAP[colorKey] || CHIP_COLORS[0];
-  const stars = ((n - 1) % 6) + 1;
-  return { colorKey, n, stars, color };
-}
-
-/* ====== ★変更：所持チップの並びを「色順 白→黄→オレンジ→赤」優先に ====== */
-function chipSortKey(chipId){
-  const { colorKey, n } = parseChipId(chipId);
-  const colorOrder = { "白":0, "黄":1, "オレンジ":2, "赤":3 };
-  return [colorOrder[colorKey] ?? 9, n].join('_');
-}
-
-let ownedDrag = null;
-
-/* ====== ★追加：チップをプールへ返却（owner解除） ====== */
-async function returnChipToPool(chipId){
-  if (!state.roomCode) return;
-  try{
-    await remove(ref(db, `rooms/${state.roomCode}/chipOwners/${chipId}`));
-  }catch(e){}
-}
-
-function startOwnedChipDrag(e, chipId){
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (!state.roomCode) return;
-  const curOwner = state.chipOwners?.[chipId];
-  if (!curOwner) return;
-
-  const srcEl = e.currentTarget;
-  if (!srcEl) return;
-
-  const r = srcEl.getBoundingClientRect();
-  const ghost = document.createElement('div');
-  ghost.className = 'chip-item chip-floating';
-  ghost.style.width = `var(--chip-d)`;
-  ghost.style.height = `var(--chip-d)`;
-  ghost.style.left = `${r.left}px`;
-  ghost.style.top  = `${r.top}px`;
-  ghost.style.pointerEvents = 'none';
-  ghost.style.zIndex = '10000';
-  ghost.innerHTML = srcEl.innerHTML;
-
-  dragLayer.appendChild(ghost);
-
-  srcEl.style.visibility = 'hidden';
-
-  ownedDrag = {
-    chipId,
-    srcEl,
-    ghost,
-    offX: e.clientX - r.left,
-    offY: e.clientY - r.top
-  };
-
-  const onMove = (ev) => {
-    if (!ownedDrag) return;
-    ev.preventDefault();
-    const left = ev.clientX - ownedDrag.offX;
-    const top  = ev.clientY - ownedDrag.offY;
-    ownedDrag.ghost.style.left = `${left}px`;
-    ownedDrag.ghost.style.top  = `${top}px`;
-  };
-
-  const onUp = async (ev) => {
-    if (!ownedDrag) return;
-    ev.preventDefault();
-
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-    window.removeEventListener('pointercancel', onUp);
-
-    const { chipId, srcEl, ghost } = ownedDrag;
-
-    const droppedInOwn = isPointInOwnCircle(ev.clientX, ev.clientY);
-
-    if (ghost && ghost.parentNode) ghost.remove();
-    if (srcEl && srcEl.isConnected) srcEl.style.visibility = '';
-
-    ownedDrag = null;
-
-    if (droppedInOwn){
-      try{
-        await set(ref(db, `rooms/${state.roomCode}/chipOwners/${chipId}`), state.userId);
-      }catch(e2){}
-    } else {
-      await returnChipToPool(chipId);
-    }
-  };
-
-  window.addEventListener('pointermove', onMove, { passive:false });
-  window.addEventListener('pointerup', onUp, { passive:false });
-  window.addEventListener('pointercancel', onUp, { passive:false });
-}
-
-function renderOwnedChips(){
-  const wraps = playerCircle.querySelectorAll('.player-wrap');
-  if (!wraps.length) return;
-
-  const owners = state.chipOwners || {};
-  const byPlayer = {};
-  for (const [chipId, pid] of Object.entries(owners)){
-    if (!pid) continue;
-    (byPlayer[pid] ||= []).push(chipId);
-  }
-  for (const pid in byPlayer){
-    byPlayer[pid].sort((a,b) => chipSortKey(a).localeCompare(chipSortKey(b)));
-  }
-
-  wraps.forEach(w => {
-    const pid = w.dataset.pid;
-    const box = w.querySelector('.owned-chips');
-    if (!box) return;
-    box.innerHTML = '';
-
-    const list = byPlayer[pid] || [];
-    list.forEach(chipId => {
-      const { color, stars } = parseChipId(chipId);
-      const fd = !!state.chipFaceDown?.[chipId];
-
-      chipUid++;
-      const el = document.createElement('div');
-      el.className = 'owned-chip draggable';
-      el.dataset.chipId = chipId;
-      el.innerHTML = chipSVG(color, stars, chipUid, fd);
-
-      el.addEventListener('pointerdown', (e) => startOwnedChipDrag(e, chipId), { passive:false });
-      box.appendChild(el);
-    });
-  });
-
-  requestAnimationFrame(updateOwnCircleToFit);
-}
-
-async function claimChip(chipId){
-  if (!state.roomCode) return false;
-  const oneRef = ref(db, `rooms/${state.roomCode}/chipOwners/${chipId}`);
-  const snap = await get(oneRef);
-  if (snap.exists() && snap.val()) return false;
-
-  await set(oneRef, state.userId);
-  return true;
-}
-
-async function toggleChipFaceDown(chipId){
-  if (!state.roomCode) return;
-  if (state.chipOwners && state.chipOwners[chipId]) return;
-  const cur = !!state.chipFaceDown?.[chipId];
-  try{
-    await set(ref(db, `rooms/${state.roomCode}/chipFaceDown/${chipId}`), !cur);
-  }catch(e){}
-}
-
-/* =========================
-   ★ チッププール位置同期
-   ========================= */
-let chipPosCommitTimer = 0;
-function scheduleCommitChipPoolPos(){
-  if (!state.roomCode) return;
-  if (chipPosCommitTimer) return;
-  chipPosCommitTimer = setTimeout(() => {
-    chipPosCommitTimer = 0;
-    commitChipPoolPosAll();
-  }, 80);
-}
-async function commitChipPoolPosAll(){
-  if (!state.roomCode) return;
-  if (!chipState.chips.length) return;
-
-  const rect = chipPoolArea.getBoundingClientRect();
-  const d = getChipD();
-  const W = rect.width, H = rect.height;
-
-  const payload = {};
-  chipState.chips.forEach(ch => {
-    if (state.chipOwners && state.chipOwners[ch.id]) return;
-    payload[ch.id] = {
-      x: clamp(Math.round(ch.x), 0, Math.max(0, W - d)),
-      y: clamp(Math.round(ch.y), 0, Math.max(0, H - d)),
-      updatedAt: Date.now(),
-      updatedBy: state.userId
-    };
-  });
-
-  try{
-    await update(ref(db, `rooms/${state.roomCode}/chipPoolPos`), payload);
-  }catch(e){}
-}
-function applyChipPoolPosFromState(){
-  if (!chipState.chips.length) return;
-
-  const pos = state.chipPoolPos || {};
-  const rect = chipPoolArea.getBoundingClientRect();
-  const d = getChipD();
-  const W = rect.width, H = rect.height;
-
-  chipState.chips.forEach(ch => {
-    const p = pos[ch.id];
-    if (!p) return;
-    if (chipState.draggingId === ch.id) return;
-
-    const nx = clamp(Number(p.x), 0, Math.max(0, W - d));
-    const ny = clamp(Number(p.y), 0, Math.max(0, H - d));
-    if (!Number.isFinite(nx) || !Number.isFinite(ny)) return;
-
-    ch.x = nx; ch.y = ny;
-    attachChipToPool(ch);
-    applyChipTransform(ch);
-  });
-}
-
-/* =========================
-   ★ プール内「押し出し」処理
-   ========================= */
-function resolveOverlaps(draggingId){
-  const d = getChipD();
-  const r = d / 2;
-
-  const rect = chipPoolArea.getBoundingClientRect();
-  const W = rect.width;
-  const H = rect.height;
-
-  const iters = 4;
-  for (let t=0; t<iters; t++){
-    for (let i=0; i<chipState.chips.length; i++){
-      const a = chipState.chips[i];
-      for (let j=i+1; j<chipState.chips.length; j++){
-        const b = chipState.chips[j];
-
-        if ((state.chipOwners && state.chipOwners[a.id]) || (state.chipOwners && state.chipOwners[b.id])) continue;
-
-        const aIsDrag = (a.id === draggingId);
-        const bIsDrag = (b.id === draggingId);
-
-        let ax = a.x + r, ay = a.y + r;
-        let bx = b.x + r, by = b.y + r;
-
-        let dx = bx - ax;
-        let dy = by - ay;
-
-        let dist = Math.hypot(dx, dy);
-        const minDist = d;
-
-        if (dist === 0){
-          dx = (Math.random() - 0.5) * 0.01;
-          dy = (Math.random() - 0.5) * 0.01;
-          dist = Math.hypot(dx, dy);
-        }
-
-        if (dist < minDist){
-          const overlap = (minDist - dist);
-          const nx = dx / dist;
-          const ny = dy / dist;
-
-          const pushA = bIsDrag ? overlap : (aIsDrag ? 0 : overlap/2);
-          const pushB = aIsDrag ? overlap : (bIsDrag ? 0 : overlap/2);
-
-          if (pushA){
-            a.x -= nx * pushA;
-            a.y -= ny * pushA;
-          }
-          if (pushB){
-            b.x += nx * pushB;
-            b.y += ny * pushB;
-          }
-
-          a.x = clamp(a.x, 0, W - d);
-          a.y = clamp(a.y, 0, H - d);
-          b.x = clamp(b.x, 0, W - d);
-          b.y = clamp(b.y, 0, H - d);
-        }
-      }
-    }
-  }
-}
-
-/* =========================================================
-   ★ ダブルクリックで裏返す
-   ========================================================= */
-function startChipDragNow(ch, rectArea){
-  chipState.draggingId = ch.id;
-  ch.el.classList.add('dragging');
-  attachChipToDragLayer(ch);
-
-  ch.el.style.left = `${rectArea.left + ch.x}px`;
-  ch.el.style.top  = `${rectArea.top  + ch.y}px`;
-}
-
-function onChipPointerDown(e, chipId){
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (state.chipOwners && state.chipOwners[chipId]) return;
-
-  const ch = getChipById(chipId);
-  if (!ch || !ch.el) return;
-
-  const rectArea = chipPoolArea.getBoundingClientRect();
-
-  const chipLeftInView = rectArea.left + ch.x;
-  const chipTopInView  = rectArea.top  + ch.y;
-  const offX = e.clientX - chipLeftInView;
-  const offY = e.clientY - chipTopInView;
-
-  chipState.dragMeta[chipId] = {
-    startX: ch.x,
-    startY: ch.y,
-    lastWallPos: { x: ch.x, y: ch.y }
-  };
-
-  chipState.press = {
-    chipId,
-    pointerId: e.pointerId,
-    downX: e.clientX,
-    downY: e.clientY,
-    startedDrag: false,
-    offX, offY
-  };
-
-  const onMove = (ev) => onChipPointerMove(ev);
-  const onUp   = (ev) => onChipPointerUp(ev, onMove, onUp);
-
-  window.addEventListener('pointermove', onMove, { passive:false });
-  window.addEventListener('pointerup', onUp, { passive:false });
-  window.addEventListener('pointercancel', onUp, { passive:false });
-}
-
-function onChipPointerMove(e){
-  if (!chipState.press) return;
-
-  e.preventDefault();
-
-  const { chipId, downX, downY } = chipState.press;
-  const ch = getChipById(chipId);
-  if (!ch || !ch.el) return;
-
-  const rectArea = chipPoolArea.getBoundingClientRect();
-  const d = getChipD();
-  const W = rectArea.width;
-  const H = rectArea.height;
-
-  const mx = e.clientX;
-  const my = e.clientY;
-
-  if (!chipState.press.startedDrag){
-    const dist = Math.hypot(mx - downX, my - downY);
-    if (dist >= DRAG_START_PX){
-      chipState.press.startedDrag = true;
-      startChipDragNow(ch, rectArea);
-    } else {
-      return;
-    }
-  }
-
-  const inPool = isPointInRect(mx, my, rectArea);
-
-  if (inPool){
-    const px = mx - rectArea.left - chipState.press.offX;
-    const py = my - rectArea.top  - chipState.press.offY;
-
-    ch.x = clamp(px, 0, W - d);
-    ch.y = clamp(py, 0, H - d);
-
-    const inset = 2;
-    const distL = ch.x;
-    const distR = (W - d) - ch.x;
-    const distT = ch.y;
-    const distB = (H - d) - ch.y;
-    const min = Math.min(distL, distR, distT, distB);
-
-    let backX = ch.x, backY = ch.y;
-    if (min === distL) backX = inset;
-    else if (min === distR) backX = (W - d) - inset;
-    else if (min === distT) backY = inset;
-    else backY = (H - d) - inset;
-
-    chipState.dragMeta[ch.id].lastWallPos = { x: clamp(backX,0,W-d), y: clamp(backY,0,H-d) };
-
-    resolveOverlaps(ch.id);
-    chipState.chips.forEach(c => {
-      if (c.id !== ch.id) applyChipTransform(c);
-    });
-
-    ch.el.style.left = `${rectArea.left + ch.x}px`;
-    ch.el.style.top  = `${rectArea.top  + ch.y}px`;
-
-    scheduleCommitChipPoolPos();
-  } else {
-    const left = mx - chipState.press.offX;
-    const top  = my - chipState.press.offY;
-    ch.el.style.left = `${left}px`;
-    ch.el.style.top  = `${top}px`;
-  }
-}
-
-async function onChipPointerUp(e, onMove, onUp){
-  if (!chipState.press) return;
-  e.preventDefault();
-
-  const press = chipState.press;
-  chipState.press = null;
-
-  window.removeEventListener('pointermove', onMove);
-  window.removeEventListener('pointerup', onUp);
-  window.removeEventListener('pointercancel', onUp);
-
-  const chipId = press.chipId;
-  const ch = getChipById(chipId);
-  if (!ch || !ch.el) return;
-
-  const rectArea = chipPoolArea.getBoundingClientRect();
-
-  if (!press.startedDrag){
-    const inPool = isPointInRect(e.clientX, e.clientY, rectArea);
-    if (!inPool) return;
-
-    const moved = Math.hypot(e.clientX - press.downX, e.clientY - press.downY);
-    if (moved > 6) return;
-
-    const last = chipState.lastTap[chipId];
-    const now = Date.now();
-
-    if (last && (now - last.at) <= 320){
-      delete chipState.lastTap[chipId];
-      await toggleChipFaceDown(chipId);
-    } else {
-      chipState.lastTap[chipId] = { at: now, x: e.clientX, y: e.clientY };
-      setTimeout(() => {
-        const cur = chipState.lastTap[chipId];
-        if (cur && (Date.now() - cur.at) > 320) delete chipState.lastTap[chipId];
-      }, 350);
-    }
-    return;
-  }
-
-  chipState.draggingId = null;
-  ch.el.classList.remove('dragging');
-
-  const d = getChipD();
-  const left = Number(String(ch.el.style.left || '0').replace('px','')) || 0;
-  const top  = Number(String(ch.el.style.top  || '0').replace('px','')) || 0;
-  const cx = left + d/2;
-  const cy = top  + d/2;
-
-  const droppedInPool = isPointInRect(cx, cy, rectArea);
-  const droppedInOwn = isPointInOwnCircle(cx, cy);
-
-  if (droppedInOwn){
-    const ok = await claimChip(ch.id);
-    if (ok){
-      const meta = chipState.dragMeta[ch.id] || { startX: ch.x, startY: ch.y };
-      ch.x = meta.startX; ch.y = meta.startY;
-      attachChipToPool(ch);
-      ch.el.style.display = 'none';
-      chipState.dragMeta[ch.id] = null;
-
-      state.chipOwners = { ...(state.chipOwners||{}), [ch.id]: state.userId };
-      applyChipOwnersToPool();
-      renderOwnedChips();
-      updateOwnCircleToFit();
-      return;
-    }
-  }
-
-  if (droppedInPool){
-    const px = cx - rectArea.left - d/2;
-    const py = cy - rectArea.top  - d/2;
-    ch.x = clamp(px, 0, rectArea.width - d);
-    ch.y = clamp(py, 0, rectArea.height - d);
-
-    attachChipToPool(ch);
-    resolveOverlaps(null);
-    chipState.chips.forEach(applyChipTransform);
-    chipState.dragMeta[ch.id] = null;
-
-    scheduleCommitChipPoolPos();
-    return;
-  }
-
-  const meta = chipState.dragMeta[ch.id] || {};
-  const back = meta.lastWallPos || { x: meta.startX ?? ch.x, y: meta.startY ?? ch.y };
-  ch.x = back.x;
-  ch.y = back.y;
-
-  attachChipToPool(ch);
-  resolveOverlaps(null);
-  chipState.chips.forEach(applyChipTransform);
-
-  chipState.dragMeta[ch.id] = null;
-  scheduleCommitChipPoolPos();
-}
-
-/* =========================
-   ★ チッププール描画
-   ========================= */
-function renderChipPool(playerCount){
-  if (joinBox.classList.contains('hidden')) chipPool.classList.remove('hidden');
-
-  setChipDFromTag();
-
-  const n = Math.max(0, Number(playerCount || 0));
-
-  if (!n){
-    chipPoolArea.innerHTML = '';
-    chipPool.style.width = '';
-    chipPool.style.height = '';
-    chipState = { ...chipState, builtFor: null, chips: [], draggingId: null, dragMeta:{}, press:null, lastTap:{} };
-    return;
-  }
-
-  /* ★追加：人数に応じてプールサイズを更新（先にサイズ確定→rect計測が安定） */
-  resizeChipPoolForPlayers(n);
-
-  const needRebuild = (chipState.builtFor !== n);
-  if (!needRebuild && chipState.chips.length){
-    applyChipPoolPosFromState();
-
-    const hasAnyPos = state.chipPoolPos && Object.keys(state.chipPoolPos).length > 0;
-    if (!hasAnyPos){
-      layoutChipPositions(chipState.chips);
-      chipState.chips.forEach(ch => {
-        if (ch.id !== chipState.draggingId) applyChipTransform(ch);
-      });
-      resolveOverlaps(null);
-      chipState.chips.forEach(ch => {
-        if (ch.id !== chipState.draggingId) applyChipTransform(ch);
-      });
-      if (state.isHost) scheduleCommitChipPoolPos();
-    }
-
-    applyChipOwnersToPool();
-    applyChipFacesToPool();
-    return;
-  }
-
-  chipState.builtFor = n;
-  chipState.draggingId = null;
-  chipState.dragMeta = {};
-  chipState.press = null;
-  chipState.lastTap = {};
-  chipPoolArea.innerHTML = '';
-
-  const chips = buildChipSetForPlayers(n);
-
-  const hasAnyPos = state.chipPoolPos && Object.keys(state.chipPoolPos).length > 0;
-
-  if (hasAnyPos){
-    const rect = chipPoolArea.getBoundingClientRect();
-    const d = getChipD();
-    const W = rect.width, H = rect.height;
-    chips.forEach(ch => {
-      const p = state.chipPoolPos[ch.id];
-      if (p && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y))){
-        ch.x = clamp(Number(p.x), 0, Math.max(0, W - d));
-        ch.y = clamp(Number(p.y), 0, Math.max(0, H - d));
-      }
-    });
-    const missing = chips.filter(ch => !state.chipPoolPos[ch.id]);
-    if (missing.length){
-      layoutChipPositions(missing);
-    }
-  } else {
-    layoutChipPositions(chips);
-  }
-
-  chips.forEach(ch => {
-    chipUid++;
-    const el = document.createElement('div');
-    el.className = 'chip-item';
-    el.dataset.chipId = ch.id;
-
-    ch.faceDown = !!state.chipFaceDown?.[ch.id];
-    el.innerHTML = chipSVG(ch.color, ch.stars, chipUid, ch.faceDown);
-
-    ch.el = el;
-    applyChipTransform(ch);
-
-    el.addEventListener('pointerdown', (e) => onChipPointerDown(e, ch.id), { passive:false });
-
-    chipPoolArea.appendChild(el);
-  });
-
-  chipState.chips = chips;
-
-  if (!hasAnyPos){
-    resolveOverlaps(null);
-    chipState.chips.forEach(applyChipTransform);
-    if (state.isHost) scheduleCommitChipPoolPos();
-  }
-
-  applyChipOwnersToPool();
-  applyChipFacesToPool();
-}
-
-/* =========================
-   ★ 52枚デッキ・カード
-   ========================= */
-function buildDeck52(){
-  const suits = [{ s: "♠" },{ s: "♥" },{ s: "♦" },{ s: "♣" }];
-  const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-  const deck = [];
-  for (const su of suits){
-    for (const r of ranks) deck.push(`${su.s}${r}`);
-  }
-  return deck;
-}
-function shuffleInPlace(arr){
-  for (let i = arr.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-function parseCard(code){
-  if (!code || typeof code !== 'string') return null;
-  const suit = code.slice(0,1);
-  const rank = code.slice(1);
-  const isRed = (suit === '♥' || suit === '♦');
-  return { suit, rank, isRed };
-}
-function pipToPercent(row, col){
-  const rows = 5, cols = 3;
-  const x = (col + 0.5) / cols * 100;
-  const y = (row + 0.5) / rows * 100;
-  return { x, y };
-}
-const PIP_LAYOUT = {
-  2: [[0,1],[4,1]],
-  3: [[0,1],[2,1],[4,1]],
-  4: [[0,0],[0,2],[4,0],[4,2]],
-  5: [[0,0],[0,2],[2,1],[4,0],[4,2]],
-  6: [[0,0],[0,2],[2,0],[2,2],[4,0],[4,2]],
-  7: [[0,0],[0,2],[0,1],[2,0],[2,2],[4,0],[4,2]],
-  8: [[0,0],[0,2],[1,1],[2,0],[2,2],[3,1],[4,0],[4,2]],
-  9: [[0,0],[0,2],[1,1],[2,0],[2,2],[2,1],[3,1],[4,0],[4,2]],
-  10:[[0,0],[0,2],[1,1],[1,0],[1,2],[3,0],[3,2],[3,1],[4,0],[4,2]]
-};
-function createCardElement(code){
-  const c = parseCard(code);
-  if (!c) return document.createElement('div');
-
-  const el = document.createElement('div');
-  el.className = `pcard ${c.isRed ? 'red' : 'black'}`;
-  el.dataset.rank = c.rank;
-  el.dataset.suit = c.suit;
-
-  const cornerTL = document.createElement('div');
-  cornerTL.className = 'corner tl';
-  cornerTL.innerHTML = `<div class="rank">${c.rank}</div><div class="suit">${c.suit}</div>`;
-
-  const cornerBR = document.createElement('div');
-  cornerBR.className = 'corner br';
-  cornerBR.innerHTML = `<div class="rank">${c.rank}</div><div class="suit">${c.suit}</div>`;
-
-  el.appendChild(cornerTL);
-  el.appendChild(cornerBR);
-
-  const rankNum = (c.rank === 'A') ? 1 : Number(c.rank);
-  const isFace = (c.rank === 'J' || c.rank === 'Q' || c.rank === 'K');
-
-  const pips = document.createElement('div');
-  pips.className = 'pips';
-
-  if (isFace){
-    const face = document.createElement('div');
-    face.className = 'face-holder';
-    face.textContent = c.rank;
-
-    const fs = document.createElement('div');
-    fs.className = 'face-suit';
-    fs.textContent = c.suit;
-
-    el.appendChild(face);
-    el.appendChild(fs);
-  } else {
-    if (c.rank === 'A'){
-      const {x,y} = pipToPercent(2,1);
-      const pip = document.createElement('div');
-      pip.className = 'pip';
-      pip.style.left = `${x}%`;
-      pip.style.top  = `${y}%`;
-      pip.textContent = c.suit;
-      pips.appendChild(pip);
-    } else {
-      const layout = PIP_LAYOUT[rankNum] || [];
-      layout.forEach(([r, col]) => {
-        const {x,y} = pipToPercent(r,col);
-        const pip = document.createElement('div');
-        pip.className = 'pip' + (r >= 3 ? ' flip' : '');
-        pip.style.left = `${x}%`;
-        pip.style.top  = `${y}%`;
-        pip.textContent = c.suit;
-        pips.appendChild(pip);
-      });
-    }
-    el.appendChild(pips);
-  }
-  return el;
-}
-function createBackCardElement(){
-  const el = document.createElement('div');
-  el.className = 'backcard';
-  return el;
-}
-
-/* =========================================================
-   ★追加：ポーカー役判定（7枚→最強5枚）
-   - 5枚組み合わせ全探索（最大21通り）
-   - 英語役名 + タイブレーク
-   ========================================================= */
-const RANK_VALUE = {
-  "2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"10":10,"J":11,"Q":12,"K":13,"A":14
-};
-function cardToEval(code){
-  const c = parseCard(code);
-  if (!c) return null;
-  const v = RANK_VALUE[c.rank];
-  return { code, suit:c.suit, rank:c.rank, v: Number(v) };
-}
-function cmpLex(a, b){
-  const n = Math.max(a.length, b.length);
-  for (let i=0;i<n;i++){
-    const x = a[i] ?? 0;
-    const y = b[i] ?? 0;
-    if (x !== y) return x - y;
-  }
-  return 0;
-}
-function choose5(list){
-  const res = [];
-  const n = list.length;
-  for (let a=0; a<n-4; a++){
-    for (let b=a+1; b<n-3; b++){
-      for (let c=b+1; c<n-2; c++){
-        for (let d=c+1; d<n-1; d++){
-          for (let e=d+1; e<n; e++){
-            res.push([list[a],list[b],list[c],list[d],list[e]]);
-          }
-        }
-      }
-    }
-  }
-  return res;
-}
-function straightHighFromValues(valsDesc){
-  // valsDesc: unique values sorted desc
-  if (valsDesc.length < 5) return 0;
-  // normal
-  for (let i=0; i<=valsDesc.length-5; i++){
-    const slice = valsDesc.slice(i, i+5);
-    let ok = true;
-    for (let j=0;j<4;j++){
-      if (slice[j] - 1 !== slice[j+1]) { ok=false; break; }
-    }
-    if (ok) return slice[0];
-  }
-  // wheel A-5
-  const set = new Set(valsDesc);
-  if (set.has(14) && set.has(5) && set.has(4) && set.has(3) && set.has(2)) return 5;
-  return 0;
-}
-function eval5(cards5){
-  // cards5: [{code,suit,v,rank}...]
-  const suits = cards5.map(c=>c.suit);
-  const vals = cards5.map(c=>c.v).sort((a,b)=>b-a);
-  const isFlush = suits.every(s => s === suits[0]);
-
-  const uniqValsDesc = Array.from(new Set(vals)).sort((a,b)=>b-a);
-  const sh = straightHighFromValues(uniqValsDesc);
-  const isStraight = sh > 0;
-
-  const counts = {};
-  for (const v of vals) counts[v] = (counts[v]||0)+1;
-
-  const groups = Object.entries(counts)
-    .map(([v,c]) => ({ v:Number(v), c:Number(c) }))
-    .sort((a,b)=> (b.c - a.c) || (b.v - a.v));
-
-  // Straight Flush (+ Royal)
-  if (isFlush && isStraight){
-    if (sh === 14 && uniqValsDesc.includes(10)){
-      return { cat: 8, score:[8,14], name:"ROYAL FLUSH" };
-    }
-    return { cat: 8, score:[8, sh], name:"STRAIGHT FLUSH" };
-  }
-
-  // Four of a Kind
-  if (groups[0]?.c === 4){
-    const quad = groups[0].v;
-    const kicker = groups.find(g=>g.c===1)?.v ?? 0;
-    return { cat: 7, score:[7, quad, kicker], name:"FOUR OF A KIND" };
-  }
-
-  // Full House
-  if (groups[0]?.c === 3 && groups[1]?.c === 2){
-    const tri = groups[0].v;
-    const pair = groups[1].v;
-    return { cat: 6, score:[6, tri, pair], name:"FULL HOUSE" };
-  }
-
-  // Flush
-  if (isFlush){
-    return { cat: 5, score:[5, ...vals], name:"FLUSH" };
-  }
-
-  // Straight
-  if (isStraight){
-    return { cat: 4, score:[4, sh], name:"STRAIGHT" };
-  }
-
-  // Three of a Kind
-  if (groups[0]?.c === 3){
-    const tri = groups[0].v;
-    const kickers = groups.filter(g=>g.c===1).map(g=>g.v).sort((a,b)=>b-a);
-    return { cat: 3, score:[3, tri, ...kickers], name:"THREE OF A KIND" };
-  }
-
-  // Two Pair
-  if (groups[0]?.c === 2 && groups[1]?.c === 2){
-    const p1 = Math.max(groups[0].v, groups[1].v);
-    const p2 = Math.min(groups[0].v, groups[1].v);
-    const kicker = groups.find(g=>g.c===1)?.v ?? 0;
-    return { cat: 2, score:[2, p1, p2, kicker], name:"TWO PAIR" };
-  }
-
-  // One Pair
-  if (groups[0]?.c === 2){
-    const pair = groups[0].v;
-    const kickers = groups.filter(g=>g.c===1).map(g=>g.v).sort((a,b)=>b-a);
-    return { cat: 1, score:[1, pair, ...kickers], name:"ONE PAIR" };
-  }
-
-  // High Card
-  return { cat: 0, score:[0, ...vals], name:"HIGH CARD" };
-}
-function bestHandFromCodes(codes){
-  const cards = (codes||[]).map(cardToEval).filter(Boolean);
-  if (cards.length < 5) return null;
-
-  let best = null;
-  let bestCombo = null;
-
-  const combos = choose5(cards);
-  for (const combo of combos){
-    const e = eval5(combo);
-    if (!best){
-      best = e; bestCombo = combo;
-      continue;
-    }
-    if (cmpLex(e.score, best.score) > 0){
-      best = e; bestCombo = combo;
-    }
-  }
-
-  if (!best || !bestCombo) return null;
-  const bestFiveCodes = bestCombo.map(c=>c.code);
-  return { name: best.name, score: best.score, bestFiveCodes };
-}
-function getPlayerName(pid){
-  const p = latestPlayers.find(x => x.id === pid);
-  return p ? (p.name || 'PLAYER') : 'PLAYER';
-}
-function showHandResultPop(playerName, handName, bestFiveCodes){
-  if (state._handPopTimer) clearTimeout(state._handPopTimer);
-  handResultTitle.textContent = String(handName || 'HAND');
-  handResultSub.textContent = String(playerName || 'PLAYER');
-
-  handResultCards.innerHTML = '';
-  (bestFiveCodes || []).forEach(code => {
-    const el = createCardElement(code);
-    handResultCards.appendChild(el);
-  });
-
-  // animationを確実にリトリガー
-  handResultPop.classList.remove('hidden');
-  const old = handResultCard.style.animation;
-  handResultCard.style.animation = 'none';
-  // reflow
-  void handResultCard.offsetWidth;
-  handResultCard.style.animation = old || 'handPop 2.0s cubic-bezier(.22,.84,.44,1) both';
-
-  state._handPopTimer = setTimeout(() => {
-    handResultPop.classList.add('hidden');
-  }, 2000);
-}
-function maybeShowRevealHandPop(){
-  const r = state.reveal;
-  const revealed = r?.revealed || {};
-
-  // 初回購読は「既に公開済み」があっても出さない
-  if (!state._revealPopInited){
-    state._revealPopInited = true;
-    state._prevRevealed = { ...revealed };
-    return;
-  }
-
-  const prev = state._prevRevealed || {};
-  const newly = [];
-  for (const [pid, v] of Object.entries(revealed)){
-    if (!v) continue;
-    if (!prev[pid]) newly.push(pid);
-  }
-  state._prevRevealed = { ...revealed };
-
-  if (!newly.length) return;
-
-  // ふつうは1人ずつだが念のため最後を表示
-  const pid = newly[newly.length - 1];
-
-  // 場5枚 + 手札（最大2枚想定）
-  const board = getBoardCodes().slice(0,5);
-  const hand = (state.hands?.[pid]?.cards && Array.isArray(state.hands[pid].cards)) ? state.hands[pid].cards : [];
-  const pool = [...board, ...hand].filter(Boolean);
-
-  const best = bestHandFromCodes(pool);
-  if (!best) return;
-
-  showHandResultPop(getPlayerName(pid), best.name, best.bestFiveCodes);
-}
-
-/* =========================
-   ★ デッキ表示
-   ========================= */
-const STACK_MAX = 15;
-const STACK_OFFSETS = [
-  {x:0.0,y:0.0,r: 0.0},{x:0.4,y:0.5,r:-0.3},{x:0.9,y:0.9,r: 0.2},{x:1.2,y:1.5,r:-0.4},
-  {x:1.8,y:1.9,r: 0.5},{x:2.2,y:2.5,r:-0.2},{x:2.8,y:2.9,r: 0.4},{x:3.1,y:3.6,r:-0.6},
-  {x:3.7,y:4.0,r: 0.3},{x:4.2,y:4.6,r:-0.3},{x:4.8,y:5.0,r: 0.6},{x:5.2,y:5.7,r:-0.4},
-  {x:5.8,y:6.1,r: 0.4},{x:6.2,y:6.8,r:-0.2},{x:6.8,y:7.2,r: 0.2},
-];
-function calcStackLayers(deckLen){
-  const removed = 52 - deckLen;
-  const layers = STACK_MAX - Math.floor(removed / 2);
-  return Math.max(1, Math.min(STACK_MAX, layers));
-}
-function renderDeckVisual(deckStackEl, deckLen, started){
-  const shownLen = started ? deckLen : 52;
-
-  deckStackEl.classList.toggle('empty', started && shownLen === 0);
-
-  const countEl = deckStackEl.querySelector('#deckCount');
-  deckStackEl.querySelectorAll('.deck-layer').forEach(n => n.remove());
-
-  const layers = (started && shownLen === 0) ? 0 : calcStackLayers(shownLen);
-  for (let i = layers - 1; i >= 0; i--){
-    const layer = document.createElement('div');
-    layer.className = 'deck-layer';
-    const o = STACK_OFFSETS[i] || {x:0,y:0,r:0};
-    layer.style.transform = `translate(${o.x}px, ${o.y}px) rotate(${o.r}deg)`;
-    deckStackEl.insertBefore(layer, countEl);
-  }
-
-  if (countEl) countEl.textContent = String(shownLen);
-}
-
-function getBoardCodes(){
-  const g = state.game || {};
-  const codes = Array.isArray(g.boardCodes) ? g.boardCodes : (Array.isArray(g.board) ? g.board : []);
-  return codes.filter(Boolean);
-}
-function getBoardFaceUpCount(){
-  const g = state.game || {};
-  const n = Number(g.boardFaceUpCount || 0);
-  return Number.isFinite(n) ? n : 0;
-}
-function attachCenterInteractions(){
-  const deckStackEl = playerCircle.querySelector('#deckStack');
-  if (deckStackEl && !deckStackEl.dataset.bound){
-    deckStackEl.dataset.bound = '1';
-    deckStackEl.addEventListener('click', onDeckClick);
-  }
-  const boardRowEl = playerCircle.querySelector('#boardRow');
-  if (boardRowEl && !boardRowEl.dataset.bound){
-    boardRowEl.dataset.bound = '1';
-    boardRowEl.addEventListener('click', onBoardClick);
-  }
-}
-function renderCenterBoard(){
-  const deckStackEl = playerCircle.querySelector('#deckStack');
-  const boardRowEl  = playerCircle.querySelector('#boardRow');
-  if (!deckStackEl || !boardRowEl) return;
-
-  attachCenterInteractions();
-
-  const started = !!state.game?.started;
-  const deck = Array.isArray(state.game?.deck) ? state.game.deck : [];
-  const boardCodes = started ? getBoardCodes() : [];
-  const faceUpCount = started ? Math.min(getBoardFaceUpCount(), boardCodes.length) : 0;
-
-  renderDeckVisual(deckStackEl, started ? deck.length : 52, started);
-
-  const slots = boardRowEl.querySelectorAll('.board-slot');
-  slots.forEach((slot, i) => {
-    slot.innerHTML = '';
-    slot.classList.remove('has-card');
-
-    if (!started) return;
-
-    if (i < boardCodes.length){
-      slot.classList.add('has-card');
-      if (i < faceUpCount){
-        const cardEl = createCardElement(boardCodes[i]);
-        slot.appendChild(cardEl);
-      } else {
-        const back = createBackCardElement();
-        slot.appendChild(back);
-      }
-    }
-  });
-}
-
-/* =========================
-   ★ 配布アニメ
-   ========================= */
-function getDealSeenKey(){
-  return state.roomCode ? `dealSeen_${state.roomCode}` : `dealSeen_unknown`;
-}
-function getShownCount(pid){
-  if (state.dealing && state.dealShownCounts && typeof state.dealShownCounts[pid] === 'number'){
-    return state.dealShownCounts[pid];
-  }
-  const handData = state.hands[pid];
-  return (handData && Array.isArray(handData.cards)) ? handData.cards.length : 0;
-}
-async function waitForTags(order){
-  for (let i=0; i<40; i++){
-    const ok = order.every(pid => document.querySelector(`.player-wrap[data-pid="${pid}"]`));
-    if (ok) return true;
-    await sleep(50);
-  }
-  return false;
-}
-async function animateOneFly(startX, startY, endX, endY, extraRot=0){
-  const el = document.createElement('div');
-  el.className = 'fly-card';
-  el.style.left = '0px';
-  el.style.top  = '0px';
-  document.body.appendChild(el);
-
-  const halfW = 30, halfH = 45;
-  const sx = startX - halfW, sy = startY - halfH;
-  const ex = endX - halfW,   ey = endY - halfH;
-  const mx = (sx + ex) / 2;
-  const my = (sy + ey) / 2 - 60;
-
-  const anim = el.animate([
-    { transform:`translate(${sx}px, ${sy}px) rotate(${0+extraRot}deg) scale(1)` },
-    { transform:`translate(${mx}px, ${my}px) rotate(${2+extraRot}deg) scale(1.02)` },
-    { transform:`translate(${ex}px, ${ey}px) rotate(${0+extraRot}deg) scale(1)` },
-  ], {
-    duration: 380,
-    easing: 'cubic-bezier(.22,.84,.44,1)',
-    fill: 'forwards'
-  });
-
-  await anim.finished.catch(()=>{});
-  el.remove();
-}
-async function runDealAnimation(order){
-  if (isDealAnimating) return;
-  isDealAnimating = true;
-
-  state.dealShownCounts = {};
-  order.forEach(pid => state.dealShownCounts[pid] = 0);
-
-  state.dealing = true;
-  renderHands();
-
-  try{
-    const deckEl = document.getElementById('deckStack');
-    if (!deckEl) return;
-
-    const d = deckEl.getBoundingClientRect();
-    const startX = d.left + d.width/2;
-    const startY = d.top  + d.height/2;
-
-    for (let round=0; round<2; round++){
-      for (let i=0; i<order.length; i++){
-        const pid = order[i];
-        const wrap = document.querySelector(`.player-wrap[data-pid="${pid}"]`);
-        if (!wrap) continue;
-
-        const tr = wrap.getBoundingClientRect();
-        const endX = tr.left + 10;
-        const endY = tr.top + tr.height/2 + 18;
-
-        await animateOneFly(startX, startY, endX, endY, (i%2===0? -1: 1));
-
-        state.dealShownCounts[pid] = (state.dealShownCounts[pid] ?? 0) + 1;
-        renderHands();
-
-        await sleep(70);
-      }
-      await sleep(140);
-    }
-  } finally {
-    state.dealing = false;
-    state.dealShownCounts = null;
-    isDealAnimating = false;
-    renderHands();
-  }
-}
-async function maybePlayDealFromGame(){
-  const started = !!state.game?.started;
-  const deal = state.game?.deal;
-  if (!started || !deal || !deal.id || !Array.isArray(deal.order)) return;
-
-  const at = typeof deal.at === 'number' ? deal.at : deal.id;
-  if (Date.now() - at > 20000) {
-    sessionStorage.setItem(getDealSeenKey(), String(deal.id));
-    return;
-  }
-
-  const seen = sessionStorage.getItem(getDealSeenKey());
-  if (seen === String(deal.id)) return;
-
-  sessionStorage.setItem(getDealSeenKey(), String(deal.id));
-
-  const ok = await waitForTags(deal.order);
-  if (!ok) return;
-
-  await runDealAnimation(deal.order);
-}
-
-/* =========================
-   ★ 山札/場札クリック（ホスト）
-   ========================= */
-async function onDeckClick(e){
-  e.preventDefault();
-  e.stopPropagation();
-  if (!state.isHost) return;
-  if (!state.roomCode) return;
-
-  const gameRef = ref(db, `rooms/${state.roomCode}/game`);
-  const snap = await get(gameRef);
-  const g = snap.val() || { started:false, deck:[], boardCodes:[], boardFaceUpCount:0 };
-
-  if (!g.started) return;
-
-  const deck = Array.isArray(g.deck) ? [...g.deck] : [];
-  const boardCodes = Array.isArray(g.boardCodes) ? [...g.boardCodes] : [];
-  const faceUpCount = Number(g.boardFaceUpCount || 0);
-
-  if (boardCodes.length === 0){
-    if (deck.length < 3) return;
-    const drawn = deck.splice(0, 3);
-    await update(gameRef, {
-      deck,
-      boardCodes: drawn,
-      boardFaceUpCount: 0
-    });
-    return;
-  }
-
-  const allFaceUp = (faceUpCount >= boardCodes.length);
-  if (allFaceUp && boardCodes.length < 5){
-    if (deck.length < 1) return;
-    const c = deck.shift();
-    boardCodes.push(c);
-    await update(gameRef, {
-      deck,
-      boardCodes,
-      boardFaceUpCount: boardCodes.length
-    });
-  }
-}
-async function onBoardClick(e){
-  e.preventDefault();
-  e.stopPropagation();
-  if (!state.isHost) return;
-  if (!state.roomCode) return;
-
-  const slot = e.target.closest('.board-slot');
-  if (!slot) return;
-
-  const gameRef = ref(db, `rooms/${state.roomCode}/game`);
-  const snap = await get(gameRef);
-  const g = snap.val() || { started:false, deck:[], boardCodes:[], boardFaceUpCount:0 };
-
-  if (!g.started) return;
-
-  const boardCodes = Array.isArray(g.boardCodes) ? [...g.boardCodes] : [];
-  const faceUpCount = Number(g.boardFaceUpCount || 0);
-
-  if (boardCodes.length === 0) return;
-  if (faceUpCount >= boardCodes.length) return;
-
-  await update(gameRef, {
-    boardFaceUpCount: Math.min(boardCodes.length, faceUpCount + 1)
-  });
 }
 
-/* =========================
-   subscribe
-   ========================= */
 function subscribeRoom(){
   const roomRef = ref(db, `rooms/${state.roomCode}`);
   onValue(roomRef, snap => {
     state.room = snap.val() || {};
     const waiting = (!state.isHost && !state.room.maxPlayers);
     hostSelectingPop.classList.toggle('hidden', !waiting);
+    state.revealStarted = !!state.room.revealStarted;
+
+    state.topic = state.room.topic || null;
+
     syncSeatUI();
-
-    if (joinBox.classList.contains('hidden')){
-      const n = Number(state.room.maxPlayers || 0);
-      renderChipPool(n);
-    }
-
-    if (state.isHost) {
-      maybeStartRevealPhaseIfReady();
-      ensureSideCardsExistsIfHost();
-    }
+    renderFieldCards();
   });
 }
 function subscribeHostState(){
@@ -2798,11 +1703,6 @@ function subscribeHostState(){
     state.isHost = (hostId === state.userId);
     updateHostUI();
     syncSeatUI();
-
-    if (state.isHost) {
-      maybeStartRevealPhaseIfReady();
-      ensureSideCardsExistsIfHost();
-    }
   });
 }
 function subscribeHands(){
@@ -2812,80 +1712,84 @@ function subscribeHands(){
     renderHands();
   });
 }
-function subscribeGame(){
-  const gameRef = ref(db, `rooms/${state.roomCode}/game`);
-  onValue(gameRef, snap => {
-    const v = snap.val();
-    const base = { started:false, deck:[], boardCodes:[], boardFaceUpCount:0, deal:null };
-    state.game = v ? { ...base, ...v } : base;
-    renderCenterBoard();
-    maybePlayDealFromGame();
-  });
-}
-function subscribeChipOwners(){
-  const ownersRef = ref(db, `rooms/${state.roomCode}/chipOwners`);
-  onValue(ownersRef, snap => {
-    state.chipOwners = snap.val() || {};
-    applyChipOwnersToPool();
-    renderOwnedChips();
-    updateOwnCircleToFit();
-
-    if (state.isHost) maybeStartRevealPhaseIfReady();
-  });
-}
-function subscribeChipPoolPos(){
-  const posRef = ref(db, `rooms/${state.roomCode}/chipPoolPos`);
-  onValue(posRef, snap => {
-    state.chipPoolPos = snap.val() || {};
-    applyChipPoolPosFromState();
-  });
-}
-function subscribeChipFaceDown(){
-  const fdRef = ref(db, `rooms/${state.roomCode}/chipFaceDown`);
-  onValue(fdRef, snap => {
-    state.chipFaceDown = snap.val() || {};
-    applyChipFacesToPool();
-    renderOwnedChips();
-  });
-}
-function subscribeReveal(){
-  const rRef = ref(db, `rooms/${state.roomCode}/reveal`);
-  onValue(rRef, snap => {
-    state.reveal = snap.val() || null;
+function subscribeCrystals(){
+  const cRef = ref(db, `rooms/${state.roomCode}/crystals`);
+  onValue(cRef, snap => {
+    state.crystals = snap.val() || {};
     renderHands();
-
-    // ★追加：公開された瞬間に「最強5枚＋役」演出（中央2秒）
-    maybeShowRevealHandPop();
+  });
+}
+function subscribeFieldCards(){
+  const fRef = ref(db, `rooms/${state.roomCode}/fieldCards`);
+  onValue(fRef, snap => {
+    state.fieldCards = snap.val() || {};
+    renderFieldCards();
+    renderHands();
+  });
+}
+function subscribeNotes(){
+  const nRef = ref(db, `rooms/${state.roomCode}/notes`);
+  onValue(nRef, snap => {
+    state.notes = snap.val() || {};
+    renderHands();
+    renderFieldCards();
   });
 }
 
-/* =========================
-   ★ 手札描画
-   ========================= */
+/* ===== 手札描画（複数枚） ===== */
 function renderMyHand(){
   myHandEl.innerHTML = '';
-
   const myId = state.userId;
   const handData = state.hands[myId];
-  const finalCards = (handData && Array.isArray(handData.cards)) ? handData.cards : [];
+  const cards = getHandCards(handData);
+  if (!cards.length) return;
 
-  const shownCount = getShownCount(myId);
+  for(const v of cards){
+    const cardEl = document.createElement('div');
+    cardEl.className = 'my-card';
 
-  for (let i=0; i<shownCount; i++){
-    const wrap = document.createElement('div');
-    wrap.className = 'my-card';
+    applyCardBg(cardEl, Number(v)); // ✅ 手札も同じ背景に
 
-    const code = finalCards[i];
-    const cardEl = code ? createCardElement(code) : createBackCardElement();
-    wrap.appendChild(cardEl);
-    myHandEl.appendChild(wrap);
+    const s = document.createElement('span');
+    s.className = 'card-num';
+    s.textContent = String(v);
+    applyNumberStyle(s, Number(v));
+    cardEl.appendChild(s);
+
+    const k = noteKeyForHand(myId, v);
+    attachCardNoteByKey(cardEl, k);
+
+    const hint = document.createElement('div');
+    hint.className = 'hint';
+    hint.textContent = '←広場にドラッグ';
+    cardEl.appendChild(hint);
+
+    cardEl.addEventListener('pointerdown', (e) => {
+      beginHandPointer(cardEl, v, e);
+    });
+    cardEl.addEventListener('pointermove', (e) => {
+      moveHandPointer(e);
+    });
+    cardEl.addEventListener('pointerup', async (e) => {
+      const res = await endHandPointer(e);
+      if(res.type === 'click'){
+        openNotePopFor(k, `手札 ${v}`);
+      }
+    });
+    cardEl.addEventListener('pointercancel', () => {
+      cleanupHandDrag('pointercancel');
+    });
+
+    myHandEl.appendChild(cardEl);
   }
 }
 function renderHands(){
   renderMyHand();
   if (latestPlayers.length) renderPlayerCircle(latestPlayers);
+  renderFieldCards();
 }
 
+/* URL room */
 const urlParams = new URLSearchParams(window.location.search);
 const roomFromUrl = urlParams.get('room');
 if(roomFromUrl) inputCode.value = roomFromUrl;
@@ -2910,6 +1814,8 @@ btnJoin.addEventListener('click', async () => {
     state.isHost = (roomData.hostId === state.userId);
   }
 
+  await ensureRoomSeed();
+  await ensureTopicControls();
   updateHostUI();
 
   mainEl.classList.remove('prejoin');
@@ -2925,25 +1831,14 @@ btnJoin.addEventListener('click', async () => {
   subscribeHostState();
   subscribePlayers();
   subscribeHands();
-  subscribeGame();
-  subscribeChipOwners();
-  subscribeChipPoolPos();
-  subscribeChipFaceDown();
-  subscribeReveal();
+  subscribeCrystals();
+  subscribeFieldCards();
+  subscribeNotes();
 
-  /* ★追加：左上カード購読 */
-  subscribeSideCards();
-
+  if(state.seatedTable !== null){
+    await ensureCrystalForPlayer(state.userId);
+  }
   syncSeatUI();
-  renderCenterBoard();
-
-  chipPool.classList.remove('hidden');
-  sideCardsEl.classList.remove('hidden');
-
-  renderChipPool(Number(state.room?.maxPlayers || 0));
-  renderSideCards();
-
-  if (state.isHost) await ensureSideCardsExistsIfHost();
 });
 
 copyLinkBtn.addEventListener('click', async () => {
@@ -2955,7 +1850,7 @@ copyLinkBtn.addEventListener('click', async () => {
     inputCode.value = state.roomCode;
     setTimeout(()=>{
       copyLinkBtn.classList.remove('copied');
-      copyLinkBtn.textContent='リンクコピー';
+      copyLinkBtn.textContent='COPY';
     },1500);
   } catch {
     prompt('コピーできません。手動でコピーしてください', url);
@@ -2994,20 +1889,22 @@ async function renderSeatTabs(){
 
     if(state.isHost && !maxPlayers){
       seatLabel.textContent = '人数を選択';
-      for(let i=2; i<=8; i++){
+
+      for(let i=2; i<=20; i++){
         const tab = document.createElement('div');
         tab.className = 'tab';
         tab.textContent = i;
 
         tab.onclick = async () => {
           await update(roomRef, { maxPlayers: i });
+
           const tRef = ref(db, `rooms/${state.roomCode}/tables/1`);
           await set(tRef, { playerId: state.userId, playerName: state.userName });
 
           state.seatedTable = 1;
           seatPop.classList.add('hidden');
 
-          renderChipPool(i);
+          await ensureCrystalForPlayer(state.userId);
         };
         seatTabs.appendChild(tab);
       }
@@ -3016,7 +1913,7 @@ async function renderSeatTabs(){
 
     seatLabel.textContent = '席を選択';
 
-    const effectiveMax = maxPlayers || 8;
+    const effectiveMax = maxPlayers || 20;
     const tablesSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
     const tables = tablesSnap.val() || {};
 
@@ -3034,6 +1931,8 @@ async function renderSeatTabs(){
         await set(tRef, { playerId: state.userId, playerName: state.userName });
         state.seatedTable = i;
         seatPop.classList.add('hidden');
+
+        await ensureCrystalForPlayer(state.userId);
       };
       seatTabs.appendChild(tab);
     }
@@ -3073,93 +1972,123 @@ function subscribePlayers(){
       state.seatedTable = null;
     }
 
+    await ensureRoomSeed();
+    ensureCardStyles();
+
+    for(const p of players){
+      ensureCrystalForPlayer(p.id);
+    }
+
+    await ensureTopicControls();
+
     await syncSeatUI();
     renderPlayerCircle(players);
-
-    setChipDFromTag();
-    const n = Number(state.room?.maxPlayers || 0);
-    if (joinBox.classList.contains('hidden')) renderChipPool(n);
   });
+}
+
+/* 配置ロジック */
+function pointOnRoundedRectPerimeter(t, w, h, r){
+  r = Math.max(0, Math.min(r, Math.min(w,h)/2));
+
+  const straightW = Math.max(0, w - 2*r);
+  const straightH = Math.max(0, h - 2*r);
+  const L = 2*(straightW + straightH) + 2*Math.PI*r;
+
+  let d = (t - Math.floor(t)) * L;
+
+  if(d <= straightW){
+    return { x: r + d, y: 0 };
+  }
+  d -= straightW;
+
+  const arcLen = (Math.PI/2)*r;
+  if(d <= arcLen){
+    const a = (-Math.PI/2) + (d/arcLen)*(Math.PI/2);
+    return { x: w - r + Math.cos(a)*r, y: r + Math.sin(a)*r };
+  }
+  d -= arcLen;
+
+  if(d <= straightH){
+    return { x: w, y: r + d };
+  }
+  d -= straightH;
+
+  if(d <= arcLen){
+    const a = (0) + (d/arcLen)*(Math.PI/2);
+    return { x: w - r + Math.cos(a)*r, y: h - r + Math.sin(a)*r };
+  }
+  d -= arcLen;
+
+  if(d <= straightW){
+    return { x: (w - r) - d, y: h };
+  }
+  d -= straightW;
+
+  if(d <= arcLen){
+    const a = (Math.PI/2) + (d/arcLen)*(Math.PI/2);
+    return { x: r + Math.cos(a)*r, y: h - r + Math.sin(a)*r };
+  }
+  d -= arcLen;
+
+  if(d <= straightH){
+    return { x: 0, y: (h - r) - d };
+  }
+  d -= straightH;
+
+  const a = (Math.PI) + (Math.min(d, arcLen)/arcLen)*(Math.PI/2);
+  return { x: r + Math.cos(a)*r, y: r + Math.sin(a)*r };
+}
+
+function getBottomCenterAnchorT(w, h, r){
+  r = Math.max(0, Math.min(r, Math.min(w,h)/2));
+  const straightW = Math.max(0, w - 2*r);
+  const straightH = Math.max(0, h - 2*r);
+  const arcLen = (Math.PI/2) * r;
+  const L = 2*(straightW + straightH) + 2*Math.PI*r;
+  if (!L || !straightW) return 0;
+
+  const startBottom = straightW + arcLen + straightH + arcLen;
+  const bottomCenterOffset = straightW / 2;
+  return (startBottom + bottomCenterOffset) / L;
 }
 
 function renderPlayerCircle(players){
   playerCircle.innerHTML = '';
   if (!players.length) return;
 
-  const center = document.createElement('div');
-  center.className = 'center-table';
-  center.id = 'centerTable';
-  center.innerHTML = `
-    <div id="deckStack" class="deck-stack empty" title="山札">
-      <div id="deckCount" class="deck-count">52</div>
-    </div>
-    <div id="boardRow" class="board-row" aria-label="場札">
-      <div class="board-slot" data-slot="0"></div>
-      <div class="board-slot" data-slot="1"></div>
-      <div class="board-slot" data-slot="2"></div>
-      <div class="board-slot" data-slot="3"></div>
-      <div class="board-slot" data-slot="4"></div>
-    </div>
-  `;
-  playerCircle.appendChild(center);
+  const rectW = 86;
+  const rectH = 100;
+  const rectX0 = (100 - rectW)/2;
+  const rectY0 = (100 - rectH)/2;
 
-  const n = players.length;
-  const radius = 45;
-  const step = (2 * Math.PI) / n;
-  const anchorAngle = Math.PI / 2;
+  const cornerR = 10;
+
   const meIndex = players.findIndex(p => p.id === state.userId);
+  const N = players.length;
+  const step = 1 / N;
 
-  const curRevealPid = getRevealCurrentPid();
-  const revealedMap = state.reveal?.revealed || {};
+  const anchor = getBottomCenterAnchorT(rectW, rectH, cornerR);
+  const offset = (meIndex >= 0) ? (anchor - meIndex * step) : anchor;
 
-  players.forEach((p, idx) => {
-    const k = (meIndex === -1) ? idx : (idx - meIndex + n) % n;
-    const angle = anchorAngle + step * k;
-
-    const x = 50 + radius * Math.cos(angle);
-    const y = 50 + radius * Math.sin(angle);
-
-    const wrap = document.createElement('div');
-    wrap.className = 'player-wrap';
-    wrap.style.left = `${x}%`;
-    wrap.style.top = `${y}%`;
-    wrap.dataset.pid = p.id;
-
-    /* ★変更：他プレイヤーだけ「wrapごと」外側＆上へ（チップもタグ横のまま） */
-    {
-      const circleRect = playerCircle.getBoundingClientRect();
-      const scale = (circleRect.width || 260) / 260;
-      const out = 35 * scale;
-      const up  = 35 * scale;
-
-      const dx = Math.cos(angle);
-      const dy = Math.sin(angle);
-
-      if (p.id !== state.userId){
-        wrap.style.transform = `translate(-50%,-50%) translate(${Math.round(dx*out)}px, ${Math.round(dy*out - up)}px)`;
-      } else {
-        wrap.style.transform = `translate(-50%,-50%)`;
-      }
-    }
-
-    if (p.id === state.userId){
-      const oc = document.createElement('div');
-      oc.id = 'ownCircle';
-      oc.className = 'owncircle' + (state.ownCircleVisible ? '' : ' hidden');
-      wrap.appendChild(oc);
-    }
+  function placePlayer(p, t, isMe=false){
+    const pt = pointOnRoundedRectPerimeter(t, rectW, rectH, cornerR);
+    const x = rectX0 + pt.x;
+    const y = rectY0 + pt.y;
 
     const tag = document.createElement('div');
-    tag.className = 'player-tag' + (p.id === state.userId ? ' me' : '');
+    tag.className = 'player-tag' + (isMe ? ' me' : '');
     tag.textContent = p.name;
+    tag.style.left = `${x}%`;
+    tag.style.top  = `${y}%`;
 
-    if (curRevealPid && p.id === curRevealPid) tag.classList.add('turn');
+    const spec = state.crystals?.[p.id];
+    const crystal = document.createElement('div');
+    crystal.className = 'tag-crystal';
+    crystal.innerHTML = crystalSVG(spec, 18);
+    tag.appendChild(crystal);
 
     tag.onclick = () => {
-      if (p.id === state.userId){
-        if (isMyRevealTurn()) revealMyHand();
-        return;
-      }
+      if (p.id === state.userId) return;
       if (!state.roomCode) return;
       if (state.seatedTable !== null) return;
 
@@ -3169,60 +2098,38 @@ function renderPlayerCircle(players){
       kickDialog.classList.remove('hidden');
     };
 
-    const count = getShownCount(p.id);
-    const isRevealed = !!revealedMap?.[p.id];
-
-    /* ★変更：公開済み表示は「自分以外だけ」 */
-    if (isRevealed && p.id !== state.userId){
-      const rh = document.createElement('div');
-      rh.className = 'reveal-hand';
-
-      const cards = (state.hands?.[p.id] && Array.isArray(state.hands[p.id].cards)) ? state.hands[p.id].cards : [];
-      cards.forEach(code => {
-        const slot = document.createElement('div');
-        slot.className = 'reveal-card';
-        const el = code ? createCardElement(code) : createBackCardElement();
-        slot.appendChild(el);
-        rh.appendChild(slot);
-      });
-
-      tag.appendChild(rh);
-    } else {
-      if (p.id !== state.userId && count > 0){
-        const miniHand = document.createElement('div');
-        miniHand.className = 'mini-hand';
-
-        const spread = 70;
-        const base = (count > 1) ? (-spread/2) : 0;
-
-        for (let idx2=0; idx2<count; idx2++){
-          const card = document.createElement('div');
-          card.className = 'mini-card';
-          card.textContent = '';
-
-          const angleDeg = (count > 1) ? base + (spread/(count-1))*idx2 : 0;
-          card.style.transform = `translate(-50%,0) rotate(${angleDeg}deg)`;
-          card.style.zIndex = String(10 + idx2);
-          miniHand.appendChild(card);
-        }
-        tag.appendChild(miniHand);
+    const count = getHandCount(state.hands[p.id]);
+    if (!isMe && count > 0){
+      const miniHand = document.createElement('div');
+      miniHand.className = 'mini-hand';
+      const show = Math.min(3, count);
+      for(let i=0;i<show;i++){
+        const card = document.createElement('div');
+        card.className = 'mini-card';
+        card.style.left = `${(show===1?22: (show===2? 18+i*10 : 14+i*10))}px`;
+        card.textContent = '';
+        miniHand.appendChild(card);
       }
+      tag.appendChild(miniHand);
     }
 
-    const ownedBox = document.createElement('div');
-    ownedBox.className = 'owned-chips';
+    playerCircle.appendChild(tag);
+  }
 
-    wrap.appendChild(tag);
-    wrap.appendChild(ownedBox);
-    playerCircle.appendChild(wrap);
-  });
+  for(let i=0;i<N;i++){
+    const p = players[i];
+    const t = (i * step + offset) % 1;
+    placePlayer(p, t, p.id === state.userId);
+  }
 
-  renderCenterBoard();
-  maybePlayDealFromGame();
-
-  renderOwnedChips();
-  applyChipOwnersToPool();
-  requestAnimationFrame(updateOwnCircleToFit);
+  const meEl = playerCircle.querySelector('.player-tag.me');
+  if(meEl){
+    const pt = pointOnRoundedRectPerimeter(anchor, rectW, rectH, cornerR);
+    const x = rectX0 + pt.x;
+    const y = rectY0 + pt.y;
+    meEl.style.left = `${x}%`;
+    meEl.style.top  = `${y}%`;
+  }
 }
 
 kickDialog.addEventListener('click', (e) => {
@@ -3258,139 +2165,69 @@ btnKickYes.addEventListener('click', async (e) => {
   }
 
   state.seatedTable = seatIndex;
+  await ensureCrystalForPlayer(state.userId);
 
   kickDialog.classList.add('hidden');
   pendingSeatIndexToSteal = null;
   pendingSeatPlayerIdToSteal = null;
-
   seatPop.classList.add('hidden');
 });
 
-/* =========================
-   ★ ゲーム開始（既存維持）
-   ========================= */
-async function ensureGameExistsIfHost(){
-  if (!state.isHost || !state.roomCode) return;
-  const gameRef = ref(db, `rooms/${state.roomCode}/game`);
-  const snap = await get(gameRef);
-  const cur = snap.val();
-  const ok =
-    cur &&
-    typeof cur.started === 'boolean' &&
-    Array.isArray(cur.deck) &&
-    (Array.isArray(cur.boardCodes) || Array.isArray(cur.board)) &&
-    (typeof cur.boardFaceUpCount === 'number' || typeof cur.boardFaceUpCount === 'undefined');
-  if (!ok){
-    await set(gameRef, { started:false, deck: [], boardCodes: [], boardFaceUpCount: 0, deal:null });
-  }
-}
-
-/* =========================================================
-   ★追加：スタート/リセット時に「チップを全リセット」
-   - owners: 全解除
-   - faceDown: 全解除
-   - poolPos: 初期配置へ戻す（→削除して初期レイアウトを再生成＆ホストが再コミット）
-   - reveal: 公開フェーズも初期化
-   ========================================================= */
-async function resetAllChipsNow(){
+/* 配布 & お題 */
+async function dealInitialHandsAndTopic(){
   if (!state.roomCode) return;
-  const base = `rooms/${state.roomCode}`;
 
-  // DB: チップ関連を全初期化
-  await Promise.all([
-    remove(ref(db, `${base}/chipOwners`)),
-    remove(ref(db, `${base}/chipPoolPos`)),
-    remove(ref(db, `${base}/chipFaceDown`)),
-    remove(ref(db, `${base}/reveal`)),
-  ]);
-
-  // ローカル状態も即初期化（表示が遅れない）
-  state.chipOwners = {};
-  state.chipPoolPos = {};
-  state.chipFaceDown = {};
-  state.reveal = null;
-
-  // ★追加：公開演出の履歴も初期化
-  state._revealPopInited = false;
-  state._prevRevealed = {};
-
-  applyChipOwnersToPool();
-  applyChipFacesToPool();
-  renderOwnedChips();
-
-  // 人数があるならプールを初期レイアウトで再描画
-  const n = Number(state.room?.maxPlayers || 0);
-  if (n){
-    renderChipPool(n);
-
-    // ★ホストは初期レイアウトをDBへ流して全員で一致させる
-    if (state.isHost){
-      setTimeout(() => {
-        // レイアウト計測が安定してからコミット
-        commitChipPoolPosAll();
-      }, 80);
-    }
-  }
-}
-
-async function startGameDeal(){
-  if (!state.roomCode) return;
+  const roomRef = ref(db, `rooms/${state.roomCode}`);
+  const roomSnap = await get(roomRef);
+  const roomData = roomSnap.val() || {};
+  const dealN = normDealCount(roomData?.topicControls?.dealCount ?? 1);
 
   const tablesSnap = await get(ref(db, `rooms/${state.roomCode}/tables`));
   const tables = tablesSnap.val() || {};
-  const seated = Object.entries(tables)
-    .map(([seatIndex, t]) => (t && t.playerId ? {
-      seatIndex: Number(seatIndex),
-      id: t.playerId,
-      name: t.playerName || '名無し'
-    } : null))
-    .filter(Boolean)
-    .sort((a,b) => a.seatIndex - b.seatIndex);
 
-  const deck = shuffleInPlace(buildDeck52());
+  const playerIds = [];
+  for (const seatIndex of Object.keys(tables)) {
+    const t = tables[seatIndex];
+    if (!t || !t.playerId) continue;
+    playerIds.push(t.playerId);
+  }
+  if(!playerIds.length) return;
 
-  const boardCodes = [];
-  const boardFaceUpCount = 0;
-
-  const hands = {};
-  seated.forEach(p => hands[p.id] = { cards: [] });
-
-  for (let round=0; round<2; round++){
-    for (const p of seated){
-      const c = deck.shift();
-      if (c) hands[p.id].cards.push(c);
-    }
+  const nums = Array.from({length:100}, (_,i)=>i+1);
+  for(let i=nums.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [nums[i], nums[j]] = [nums[j], nums[i]];
   }
 
-  const deal = {
-    id: Date.now(),
-    at: Date.now(),
-    order: seated.map(p => p.id)
-  };
+  const hands = {};
+  playerIds.forEach((pid, idx) => {
+    const start = idx * dealN;
+    hands[pid] = { cards: nums.slice(start, start + dealN) };
+  });
 
-  const base = `rooms/${state.roomCode}`;
+  const topicText = pickRandom(TOPIC_POOL);
+
   await Promise.all([
-    set(ref(db, `${base}/game`), { started:true, deck, boardCodes, boardFaceUpCount, deal }),
-    set(ref(db, `${base}/hands`), hands),
+    set(ref(db, `rooms/${state.roomCode}/hands`), hands),
+    remove(ref(db, `rooms/${state.roomCode}/fieldCards`)),
+    remove(ref(db, `rooms/${state.roomCode}/notes`)),
+    update(ref(db, `rooms/${state.roomCode}`), {
+      revealStarted: false,
+      dealCountAtStart: dealN,
+      topic: { text: topicText, at: Date.now() }
+    })
   ]);
 }
 
-hostSettingsBtn.addEventListener('click', async () => {
+hostSettingsBtn.addEventListener('click', () => {
   if (!state.isHost) return;
-  await ensureGameExistsIfHost();
   startPop.classList.toggle('hidden');
 });
-btnStartPopClose.addEventListener('click', () => {
-  startPop.classList.add('hidden');
-});
+btnStartPopClose.addEventListener('click', () => { startPop.classList.add('hidden'); });
 
 btnGameStart.addEventListener('click', async () => {
   if (!state.isHost) return;
-
-  // ★ここが追加：スタート時にチップを全リセット
-  await resetAllChipsNow();
-
-  await startGameDeal();
+  await dealInitialHandsAndTopic();
   startPop.classList.add('hidden');
 });
 
@@ -3402,41 +2239,21 @@ btnResetRoom.addEventListener('click', async () => {
     remove(ref(db, `${base}/maxPlayers`)),
     remove(ref(db, `${base}/tables`)),
     remove(ref(db, `${base}/hands`)),
-    remove(ref(db, `${base}/game`)),
-    // ★チップ全初期化（リセットは従来通り）
-    remove(ref(db, `${base}/chipOwners`)),
-    remove(ref(db, `${base}/chipPoolPos`)),
-    remove(ref(db, `${base}/chipFaceDown`)),
-    remove(ref(db, `${base}/reveal`)),
-    /* ★追加：リセット時は左上カードも全部裏（=状態削除→デフォルト裏表示） */
-    remove(ref(db, `${base}/sideCards`)),
+    remove(ref(db, `${base}/fieldCards`)),
+    remove(ref(db, `${base}/crystals`)),
+    remove(ref(db, `${base}/seed`)),
+    remove(ref(db, `${base}/topic`)),
+    remove(ref(db, `${base}/notes`)),
+    remove(ref(db, `${base}/dealCountAtStart`)),
+    update(ref(db, `${base}`), {
+      revealStarted:false,
+      topicControls: { hearts:[1,1,1], dealCount:1 }
+    })
   ]);
 
   state.seatedTable = null;
   startPop.classList.add('hidden');
   await syncSeatUI();
-
-  state.game = { started:false, deck:[], boardCodes:[], boardFaceUpCount:0, deal:null };
-  renderCenterBoard();
-
-  state.reveal = null;
-  state.sideCards = null;
-  renderSideCards();
-
-  // ★追加：公開演出の履歴も初期化
-  state._revealPopInited = false;
-  state._prevRevealed = {};
-
-  // ローカルも即初期化
-  state.chipOwners = {};
-  state.chipPoolPos = {};
-  state.chipFaceDown = {};
-  renderOwnedChips();
-  renderChipPool(0);
-});
-
-window.addEventListener('load', () => {
-  renderCenterBoard();
 });
 </script>
 
