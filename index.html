@@ -246,10 +246,9 @@
     user-select:none;
     pointer-events:none;
     flex:0 0 auto;
-    white-space:nowrap;     /* ✅ 折り返し禁止 */
-    overflow:hidden;        /* ✅ はみ出し隠す（計測用） */
-    text-overflow:clip;     /* ✅ 省略記号にしない（好みで ellipsis でもOK） */
-
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:clip;
   }
   .topic-ui{
     display:flex;
@@ -332,33 +331,27 @@
   }
 
   /* =========================
-     ✅ 数字カード：白枠 + 内側グラデ背景（表面）
+     ✅ 数字カード：白枠 + 単色背景
      ========================= */
-/* ✅ 表面カード：単色（グラデなし）＋白枠をもっと太く */
-.field-card,
-.my-card{
-  border:5px solid #fff;                 /* ← 太くした（好みで 4〜7px） */
-  background-image:none !important;      /* ← グラデ完全OFF */
-  background-color: var(--bgSolid, #eee);/* ← 単色はCSS変数で渡す */
-  box-shadow:0 10px 22px rgba(0,0,0,.16);
-}
-
-/* ✅ 以前のグラデ用の内側効果も消す */
-.field-card::before,
-.my-card::before{
-  content:none !important;
-}
-
-/* ✅ 裏面(itocard)はそのまま（白枠は付けない＝従来通り） */
-.field-card.back{
-  background-image:url('itocard.png') !important;
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  background-color:transparent !important;
-  border:1px solid rgba(0,0,0,.18) !important;
-}
-
+  .field-card,
+  .my-card{
+    border:5px solid #fff;
+    background-image:none !important;
+    background-color: var(--bgSolid, #eee);
+    box-shadow:0 10px 22px rgba(0,0,0,.16);
+  }
+  .field-card::before,
+  .my-card::before{
+    content:none !important;
+  }
+  .field-card.back{
+    background-image:url('itocard.png') !important;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-color:transparent !important;
+    border:1px solid rgba(0,0,0,.18) !important;
+  }
 
   .card-note{
     position:absolute;
@@ -394,25 +387,22 @@
     color:#9ca3af;
   }
 
-.hand-drag-ghost{
-  position:fixed;
-  width:64px;height:96px;
-  border-radius:10px;
-
-  /* ✅ ここがポイント：ドラッグ中も同じ色を使う */
-  border:5px solid #fff;                  /* 表カードと同じ太白枠 */
-  background-image:none !important;       /* グラデ/画像なし */
-  background-color: var(--bgSolid, #eee) !important; /* ← applyCardBgの色が効く */
-
-  box-shadow:0 16px 32px rgba(0,0,0,.22);
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:800;
-  transform:translate(-50%,-50%);
-  z-index:9999;
-  pointer-events:none;
-  opacity:.95;
-  overflow:hidden;
-}
+  .hand-drag-ghost{
+    position:fixed;
+    width:64px;height:96px;
+    border-radius:10px;
+    border:5px solid #fff;
+    background-image:none !important;
+    background-color: var(--bgSolid, #eee) !important;
+    box-shadow:0 16px 32px rgba(0,0,0,.22);
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;font-weight:800;
+    transform:translate(-50%,-50%);
+    z-index:9999;
+    pointer-events:none;
+    opacity:.95;
+    overflow:hidden;
+  }
 
   .dialog-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.35);
@@ -481,20 +471,46 @@
   }
   .help-pop-title{font-weight:800;font-size:14px;}
   .help-pop-body{padding:12px;overflow:auto;max-height:calc(70vh - 48px);}
-  .role-row{
-    display:flex;gap:12px;align-items:flex-start;
-    padding:10px 0;
+
+  /* ✅ ヘルプ内：お題カード 3×10 */
+  .topic-grid{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap:10px;
   }
-  .role-card{
-    width:72px;height:108px;border-radius:10px;border:1px solid #ddd;background:#f8f8f8;
-    box-shadow:0 6px 16px rgba(0,0,0,.10);
-    flex:0 0 auto;
-    display:flex;align-items:center;justify-content:center;
-    font-size:12px;font-weight:700;color:#444;
+  .topic-help-card{
+    border-radius:12px;
+    border:2px solid rgba(255,255,255,.92);
+    box-shadow:0 10px 22px rgba(0,0,0,.14);
+    padding:10px 10px;
+    min-height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    font-weight:900;
+    letter-spacing:.02em;
+    user-select:none;
+    cursor:pointer;
+    overflow:hidden;
+    position:relative;
+
+    /* ✅ 既存のお題カード設定に合わせる（色は変えない） */
+    background:rgba(80, 180, 255, .92);
+    color:#fff;
   }
-  .role-desc{flex:1 1 auto;}
-  .role-desc .name{font-weight:900;margin-bottom:4px;}
-  .role-desc .text{font-size:13px;line-height:1.55;color:#222;white-space:pre-wrap;}
+  .topic-help-card:active{ transform: translateY(1px); }
+
+  /* 長文でも見えるように */
+  .topic-help-card .ttext{
+    font-size:13px;
+    line-height:1.25;
+    display:-webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow:hidden;
+    word-break:break-word;
+  }
 
   .toast{display:none !important;}
 
@@ -528,19 +544,14 @@
     outline:none;
   }
   .input-hint{margin-top:10px; font-size:12px; opacity:.7;}
-.player-tag.me{ margin-top: 60px; }
-#myHand{ margin-top: 60px; }
 
-@media (max-width: 600px){
-  .player-tag.me{ margin-top: 110px; }
-  #myHand{ margin-top: 110px; }
-}
-
-input, textarea, select, button{
-  font-size:16px;
-}
-
-
+  .player-tag.me{ margin-top: 60px; }
+  #myHand{ margin-top: 60px; }
+  @media (max-width: 600px){
+    .player-tag.me{ margin-top: 110px; }
+    #myHand{ margin-top: 110px; }
+  }
+  input, textarea, select, button{ font-size:16px; }
 </style>
 </head>
 <body>
@@ -610,12 +621,12 @@ input, textarea, select, button{
 </div>
 
 <button id="hostSettingsBtn" class="host-settings-btn" title="設定">⚙</button>
-<button id="helpBtn" class="help-btn" title="正体カード一覧">？</button>
+<button id="helpBtn" class="help-btn" title="お題一覧">？</button>
 
 <div id="helpBackdrop" class="help-pop-backdrop hidden">
-  <div class="help-pop" role="dialog" aria-modal="true" aria-label="正体カード一覧">
+  <div class="help-pop" role="dialog" aria-modal="true" aria-label="お題一覧">
     <div class="help-pop-header">
-      <div class="help-pop-title">正体カード</div>
+      <div class="help-pop-title">お題カード（クリックで変更）</div>
       <button id="btnHelpClose" class="btn ghost" style="padding:2px 6px;font-size:12px;">×</button>
     </div>
     <div class="help-pop-body" id="helpBody"></div>
@@ -736,13 +747,6 @@ const inputPop = document.getElementById('inputPop');
 const inputTitle = document.getElementById('inputTitle');
 const inputArea = document.getElementById('inputArea');
 
-const ROLE_HELP = [
-  { name: "カード1", text: "ああああ" },
-  { name: "カード2", text: "いいいい" },
-  { name: "カード3", text: "うううう" },
-  { name: "カード4", text: "うううう" },
-];
-
 function showToast(){}
 
 /* ====== ハート/配布枚数 UI（DB同期） ====== */
@@ -815,31 +819,91 @@ function getHandCards(handData){
 }
 function getHandCount(handData){ return getHandCards(handData).length; }
 
-/* ====== 既存：ヘルプ ====== */
-function renderHelpList(){
-  helpBody.innerHTML = '';
-  ROLE_HELP.forEach((r, idx) => {
-    const row = document.createElement('div');
-    row.className = 'role-row';
+/* =========================
+   ✅ ヘルプ（お題 3×10）
+   ========================= */
 
-    const card = document.createElement('div');
-    card.className = 'role-card';
-    card.textContent = `CARD ${idx+1}`;
+/* お題 */
+const TOPIC_POOL = ["コンビニの商品の人気","100円ショップの商品の人気","飲食店の人気","駅の人気","中華料理の人気","学校給食の人気","有名人の人気","子供に人気なもの","アニメ・漫画のキャラの人気","ゲームキャラの人気（モンスター含む）","キャラクターの人気（ゆるキャラ含む）","プレゼント・お土産の人気","建物の人気","住みたい国や場所の人気","アプリ・ウェブサービスの人気","乗り物の人気","俳優の人気","悪役の人気","食べ物の人気","飲み物の人気","生き物の人気","おもちゃの人気","電化製品の人気","映画の人気","ミュージシャンの人気","お菓子・スイーツ・アイスの人気","ペットの人気","職業の人気","おにぎりの具の人気","パンの種類の人気","趣味の人気","メーカー（ブランド）の人気","アニメ・漫画の人気","ゲームの人気","和食料理の人気","洋食料理の人気","歴史上の人物の人気","声優の人気","童話の人気","歌・曲の人気","映画の登場人物の人気","アスリートの人気","スポーツの人気","テレビ番組の人気","恋人にしたい職業の人気","デートスポットの人気","ハネムーンで行きたい場所の人気","酒のつまみ・居酒屋メニューの人気","化粧品の人気","ボードゲームの人気","資格・免許の人気","旅行したい国や場所の人気","旅行先に持っていきたいもの","ゾンビと戦うときに持っていきたいもの","無人島に持っていきたいもの","一人暮らしに必要なもの","美しいもの","こわいもの","楽しいこと","嬉しいこと","カバンに入っていたら嬉しいもの","言われて嬉しい言葉","なりたい生き物","なりたい歴史上の人物","なりたい有名人","なりたいキャラ","生き物の大きさ","学校にあるものの大きさ","歴史上の人物の強さ","映画の登場人物の強さ","生き物の強さ","アニメ・漫画のキャラの強さ","ゲームキャラの強さ（モンスター含む）","強そうな言葉（漢字、熟語など）","強そうな効果音（創作OK）","有名人の年収・資産","重そうなもの","ボードゲームの（物理的な）重さ","食べ物のカロリー","モテる条件・特技","やわらかそうなもの","カッコいいもの","カッコいいセリフ","カッコいい苗字・名前","かわいいもの","小学生が好きな言葉","中高生が好きな言葉","人生で大切なもの・こと","雪山で遭難したときにもっていたいもの","地球観光に来た宇宙人にあげたいお土産","テンションが上がるもの・こと","時代遅れの言葉","オタクが喜ぶセリフ・設定","グッとくる仕草・行動","結婚したい有名人","結婚したいキャラ","親になってほしいキャラ","ほしい特殊能力・武器（必殺技・道具）","便利なもの","されたいプロポーズ（セリフ・シチュエーション）"];
 
-    const desc = document.createElement('div');
-    desc.className = 'role-desc';
-    desc.innerHTML = `
-      <div class="name">${r.name}</div>
-      <div class="text">${r.text}</div>
-    `;
-    row.appendChild(card);
-    row.appendChild(desc);
-    helpBody.appendChild(row);
+function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffleCopy(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ✅ ヘルプ用：30枚（3×10）をDBに保持 */
+function helpTopicsList(){
+  // room.helpTopics = { list:[...30], at:Date.now() } を想定
+  const list = state.room?.helpTopics?.list;
+  if(Array.isArray(list) && list.length === 30) return list;
+  return null;
+}
+async function ensureHelpTopics(){
+  if(!state.roomCode) return;
+  const htRef = ref(db, `rooms/${state.roomCode}/helpTopics`);
+  await runTransaction(htRef, (cur) => {
+    if(cur && Array.isArray(cur.list) && cur.list.length === 30) return cur;
+    const list = shuffleCopy(TOPIC_POOL).slice(0, 30);
+    return { list, at: Date.now() };
   });
 }
-function openHelp(){ renderHelpList(); helpBackdrop.classList.remove('hidden'); }
+async function reshuffleHelpTopics(){
+  if(!state.roomCode) return;
+  const list = shuffleCopy(TOPIC_POOL).slice(0, 30);
+  await set(ref(db, `rooms/${state.roomCode}/helpTopics`), { list, at: Date.now() });
+}
+
+/* ✅ お題変更（クリックで、そのお題に変わる） */
+async function setTopicText(text){
+  if(!state.roomCode) return;
+  const topicText = String(text || '').trim();
+  if(!topicText) return;
+  await update(ref(db, `rooms/${state.roomCode}`), {
+    topic: { text: topicText, at: Date.now() }
+  });
+}
+
+/* ✅ ヘルプ描画 */
+function renderHelpList(){
+  helpBody.innerHTML = '';
+
+  const grid = document.createElement('div');
+  grid.className = 'topic-grid';
+
+  // 無ければローカル仮表示（開いた時にensureで埋まる）
+  const topics = helpTopicsList() || shuffleCopy(TOPIC_POOL).slice(0, 30);
+
+  topics.forEach((t) => {
+    const card = document.createElement('div');
+    card.className = 'topic-help-card';
+    // ✅ 既存のお題カード設定に合わせて：topic-card と同じ背景/文字（CSSで固定）
+    card.innerHTML = `<div class="ttext">${String(t)}</div>`;
+    card.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await setTopicText(t);
+      closeHelp();
+    });
+    grid.appendChild(card);
+  });
+
+  helpBody.appendChild(grid);
+}
+
+async function openHelp(){
+  await ensureHelpTopics();     // ✅ 初回/欠損時にDBへ30枚確定
+  renderHelpList();
+  helpBackdrop.classList.remove('hidden');
+}
 function closeHelp(){ helpBackdrop.classList.add('hidden'); }
-helpBtn.addEventListener('click', () => { if (joinBox.classList.contains('hidden')) openHelp(); });
+
+helpBtn.addEventListener('click', async () => {
+  if (joinBox.classList.contains('hidden')) await openHelp();
+});
 btnHelpClose.addEventListener('click', closeHelp);
 helpBackdrop.addEventListener('click', (e) => { if (e.target === helpBackdrop) closeHelp(); });
 
@@ -1005,11 +1069,9 @@ function mixHex(a, b, t){
 }
 function colorForValueByAnchors(value){
   const v = clamp(Number(value)||1, 1, 100);
-
   for(const p of NUM_BG_ANCHORS){
     if(p.v === v) return p.hex;
   }
-
   let p0 = NUM_BG_ANCHORS[0];
   let p1 = NUM_BG_ANCHORS[NUM_BG_ANCHORS.length-1];
   for(let i=0;i<NUM_BG_ANCHORS.length-1;i++){
@@ -1020,24 +1082,17 @@ function colorForValueByAnchors(value){
       break;
     }
   }
-
   const span = (p1.v - p0.v) || 1;
   const t = (v - p0.v) / span;
   return mixHex(p0.hex, p1.hex, t);
 }
-
-
 function applyCardBg(el, value){
   const base = colorForValueByAnchors(value);
-
-  // ✅ 単色のみ（グラデ用変数は使わない）
   el.style.setProperty('--bgSolid', base);
-
   const rgb = hexToRgb(base);
   const lumin = (0.2126*rgb.r + 0.7152*rgb.g + 0.0722*rgb.b) / 255;
   el.style.setProperty('--numShadow', lumin < 0.28 ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.18)');
 }
-
 
 function hslToRgb(h, s, l){
   s/=100; l/=100;
@@ -1248,10 +1303,6 @@ function allSubmitted(){
   });
 }
 
-/* お題 */
-const TOPIC_POOL = ["コンビニの商品の人気","100円ショップの商品の人気","飲食店の人気","駅の人気","中華料理の人気","学校給食の人気","有名人の人気","子供に人気なもの","アニメ・漫画のキャラの人気","ゲームキャラの人気（モンスター含む）","キャラクターの人気（ゆるキャラ含む）","プレゼント・お土産の人気","建物の人気","住みたい国や場所の人気","アプリ・ウェブサービスの人気","乗り物の人気","俳優の人気","悪役の人気","食べ物の人気","飲み物の人気","生き物の人気","おもちゃの人気","電化製品の人気","映画の人気","ミュージシャンの人気","お菓子・スイーツ・アイスの人気","ペットの人気","職業の人気","おにぎりの具の人気","パンの種類の人気","趣味の人気","メーカー（ブランド）の人気","アニメ・漫画の人気","ゲームの人気","和食料理の人気","洋食料理の人気","歴史上の人物の人気","声優の人気","童話の人気","歌・曲の人気","映画の登場人物の人気","アスリートの人気","スポーツの人気","テレビ番組の人気","恋人にしたい職業の人気","デートスポットの人気","ハネムーンで行きたい場所の人気","酒のつまみ・居酒屋メニューの人気","化粧品の人気","ボードゲームの人気","資格・免許の人気","旅行したい国や場所の人気","旅行先に持っていきたいもの","ゾンビと戦うときに持っていきたいもの","無人島に持っていきたいもの","一人暮らしに必要なもの","美しいもの","こわいもの","楽しいこと","嬉しいこと","カバンに入っていたら嬉しいもの","言われて嬉しい言葉","なりたい生き物","なりたい歴史上の人物","なりたい有名人","なりたいキャラ","生き物の大きさ","学校にあるものの大きさ","歴史上の人物の強さ","映画の登場人物の強さ","生き物の強さ","アニメ・漫画のキャラの強さ","ゲームキャラの強さ（モンスター含む）","強そうな言葉（漢字、熟語など）","強そうな効果音（創作OK）","有名人の年収・資産","重そうなもの","ボードゲームの（物理的な）重さ","食べ物のカロリー","モテる条件・特技","やわらかそうなもの","カッコいいもの","カッコいいセリフ","カッコいい苗字・名前","かわいいもの","小学生が好きな言葉","中高生が好きな言葉","人生で大切なもの・こと","雪山で遭難したときにもっていたいもの","地球観光に来た宇宙人にあげたいお土産","テンションが上がるもの・こと","時代遅れの言葉","オタクが喜ぶセリフ・設定","グッとくる仕草・行動","結婚したい有名人","結婚したいキャラ","親になってほしいキャラ","ほしい特殊能力・武器（必殺技・道具）","便利なもの","されたいプロポーズ（セリフ・シチュエーション）"];
-function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
 /* ✅ ハートSVG */
 function heartSVG(filled){
   const fill = filled ? '#d946ef' : '#9ca3af';
@@ -1286,18 +1337,14 @@ function fitTopicText(){
     const el = plazaEl.querySelector('.topic-card');
     if(!el) return;
 
-    // 初期サイズ（大きめ）→ 収まるまで下げる
-    const MAX = 20;   // 好みで
-    const MIN = 10;   // これ以下にはしない
-    const STEP = 0.5; // 微調整の細かさ
+    const MAX = 20;
+    const MIN = 10;
+    const STEP = 0.5;
 
     el.style.whiteSpace = 'nowrap';
     el.style.overflow = 'hidden';
-
-    // 一旦最大に戻してから計測（短いお題でも大きく見せる）
     el.style.fontSize = `${MAX}px`;
 
-    // scrollWidth > clientWidth なら溢れてる
     let size = MAX;
     while(size > MIN && el.scrollWidth > el.clientWidth){
       size -= STEP;
@@ -1305,10 +1352,7 @@ function fitTopicText(){
     }
   });
 }
-
-// リサイズでも再計算
 window.addEventListener('resize', fitTopicText);
-
 
 function renderTopic(){
   const old = plazaEl.querySelector('.topic-bar');
@@ -1371,8 +1415,7 @@ function renderTopic(){
   bar.appendChild(ui);
 
   plazaEl.appendChild(bar);
-  fitTopicText(); // ✅ 追加：お題の自動フィット
-
+  fitTopicText();
 }
 
 /* ===== 広場カード ===== */
@@ -1380,7 +1423,6 @@ let localDraggingFieldId = null;
 let fieldDragOffset = {dx:0, dy:0};
 let rafPending = false;
 let pendingFieldXY = null;
-
 let fieldPointer = null;
 
 const CLICK_DELAY_MS = 220;
@@ -1465,7 +1507,7 @@ function renderFieldCards(){
       el.classList.add('faceup');
       const v = Number(fc.value);
 
-      applyCardBg(el, v); // ✅ 背景（1→100アンカー補間）
+      applyCardBg(el, v);
 
       const s = document.createElement('span');
       s.className = 'card-num';
@@ -1620,10 +1662,6 @@ async function revealCard(cardId){
 
 /* =========================================================
    ✅ 手札→広場ドラッグ（複数対応）
-   ✅ ゴースト二重（2枚存在）根絶：
-      - クリック判定とドラッグ開始を分離（動いた時だけゴースト生成）
-      - 場カード生成と手札削除を「root updateの同時更新」にして、
-        一瞬の二重表示（手札に残ったまま場に出る）を消す
    ========================================================= */
 let handDrag = null;
 const HAND_DRAG_THRESHOLD = 6;
@@ -1632,7 +1670,7 @@ function createHandGhost(value){
   const g = document.createElement('div');
   g.className = 'hand-drag-ghost';
 
-  applyCardBg(g, Number(value)); // ✅ ゴーストも同じ背景に
+  applyCardBg(g, Number(value));
 
   const s = document.createElement('span');
   s.className = 'card-num';
@@ -1834,6 +1872,11 @@ function subscribeRoom(){
 
     state.topic = state.room.topic || null;
 
+    // ✅ ヘルプ30枚が入ってきたら、開いている時に再描画
+    if(!helpBackdrop.classList.contains('hidden')){
+      renderHelpList();
+    }
+
     syncSeatUI();
     renderFieldCards();
   });
@@ -1865,7 +1908,6 @@ function subscribeFieldCards(){
   const fRef = ref(db, `rooms/${state.roomCode}/fieldCards`);
   onValue(fRef, snap => {
     state.fieldCards = snap.val() || {};
-
     renderFieldCards();
     renderHands();
   });
@@ -1891,7 +1933,7 @@ function renderMyHand(){
     const cardEl = document.createElement('div');
     cardEl.className = 'my-card';
 
-    applyCardBg(cardEl, Number(v)); // ✅ 手札も同じ背景に
+    applyCardBg(cardEl, Number(v));
 
     const s = document.createElement('span');
     s.className = 'card-num';
@@ -1959,6 +2001,7 @@ btnJoin.addEventListener('click', async () => {
 
   await ensureRoomSeed();
   await ensureTopicControls();
+  await ensureHelpTopics(); // ✅ 入室時にもヘルプ30枚を確定（無ければ作る）
   updateHostUI();
 
   mainEl.classList.remove('prejoin');
@@ -2300,7 +2343,7 @@ btnKickYes.addEventListener('click', async (e) => {
   const roomSnap = await get(roomRef);
   const roomData = roomSnap.val() || {};
 
- const tRef = ref(db, `rooms/${state.roomCode}/tables/${seatIndex}`);
+  const tRef = ref(db, `rooms/${state.roomCode}/tables/${seatIndex}`);
   await set(tRef, { playerId: state.userId, playerName: state.userName || '名無し' });
 
   if (pendingSeatPlayerIdToSteal) {
@@ -2313,7 +2356,6 @@ btnKickYes.addEventListener('click', async (e) => {
 
   state.seatedTable = seatIndex;
   await ensureCrystalForPlayer(state.userId);
-
 
   kickDialog.classList.add('hidden');
   pendingSeatIndexToSteal = null;
@@ -2393,11 +2435,15 @@ btnResetRoom.addEventListener('click', async () => {
     remove(ref(db, `${base}/topic`)),
     remove(ref(db, `${base}/notes`)),
     remove(ref(db, `${base}/dealCountAtStart`)),
+    remove(ref(db, `${base}/helpTopics`)), // ✅ 追加：リセットでヘルプお題もシャッフルされるように
     update(ref(db, `${base}`), {
       revealStarted:false,
       topicControls: { hearts:[1,1,1], dealCount:1 }
     })
   ]);
+
+  // ✅ リセット直後に新しい30枚を作成（＝「リセットを押したらヘルプタブのお題はシャッフル」）
+  await reshuffleHelpTopics();
 
   state.seatedTable = null;
   startPop.classList.add('hidden');
