@@ -932,7 +932,7 @@ function noteKeyForField(fieldCardId){
 function openNotePopFor(key, label){
   inputMode = 'note';
   editingKey = key;
-  inputTitle.textContent = `カード入力：${label}`;
+  inputTitle.textContent = `カード：${label}`;
   inputArea.value = String(state.notes?.[key] ?? '');
   inputBackdrop.classList.remove('hidden');
   setTimeout(()=>inputArea.focus(), 0);
@@ -1493,7 +1493,7 @@ function closeRevealDialog(){
 }
 function openRevealDialog(cardId, label){
   pendingRevealId = cardId;
-  revealMessage.textContent = `「${label}」を表にしますか？`;
+  revealMessage.textContent = `このカードを表にしますか？`;
   revealDialog.classList.remove('hidden');
 }
 revealDialog.addEventListener('click', (e) => {
@@ -1636,7 +1636,7 @@ function renderFieldCards(){
       if((suppressClickUntil.get(fc.id) || 0) > Date.now()) return;
 
       scheduleSingleClick(fc.id, () => {
-        openNotePopFor(noteKeyForField(fc.id), `場 ${fc.value}`);
+        openNotePopFor(noteKeyForField(fc.id), ` ${fc.value}`);
       });
     });
 
@@ -1990,7 +1990,7 @@ function renderMyHand(){
     cardEl.addEventListener('pointerup', async (e) => {
       const res = await endHandPointer(e);
       if(res.type === 'click'){
-        openNotePopFor(k, `手札 ${v}`);
+        openNotePopFor(k, ` ${v}`);
       }
     });
     cardEl.addEventListener('pointercancel', () => {
