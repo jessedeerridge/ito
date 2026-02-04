@@ -244,7 +244,8 @@
     color:#fff;
     letter-spacing:.06em;
     user-select:none;
-    pointer-events:none;
+    pointer-events:auto;
+    cursor:pointer;
     flex:0 0 auto;
     white-space:nowrap;
     overflow:hidden;
@@ -921,6 +922,7 @@ function anyFaceUp(){
    ✅ 入力ポップ（カードごと）
    ========================= */
 let editingKey = null;
+let inputMode = null;
 function noteKeyForHand(ownerId, value){
   return `H:${ownerId}:${value}`;
 }
@@ -928,22 +930,39 @@ function noteKeyForField(fieldCardId){
   return `F:${fieldCardId}`;
 }
 function openNotePopFor(key, label){
+  inputMode = 'note';
   editingKey = key;
   inputTitle.textContent = `カード入力：${label}`;
   inputArea.value = String(state.notes?.[key] ?? '');
   inputBackdrop.classList.remove('hidden');
   setTimeout(()=>inputArea.focus(), 0);
 }
+function openTopicEditPop(currentText){
+  inputMode = 'topic';
+  editingKey = null;
+  inputTitle.textContent = 'お題を編集';
+  inputArea.value = String(currentText ?? '').trim();
+  inputBackdrop.classList.remove('hidden');
+  setTimeout(()=>inputArea.focus(), 0);
+}
 async function commitNoteAndClose(){
-  if(!state.roomCode || !editingKey) {
+  if(!state.roomCode) {
     inputBackdrop.classList.add('hidden');
     editingKey = null;
+    inputMode = null;
     return;
   }
   const text = String(inputArea.value ?? '').trim();
-  await set(ref(db, `rooms/${state.roomCode}/notes/${editingKey}`), text);
+  if(inputMode === 'note'){
+    if(editingKey){
+      await set(ref(db, `rooms/${state.roomCode}/notes/${editingKey}`), text);
+    }
+  }else if(inputMode === 'topic'){
+    await setTopicText(text);
+  }
   inputBackdrop.classList.add('hidden');
   editingKey = null;
+  inputMode = null;
 }
 inputBackdrop.addEventListener('click', async (e) => {
   if(e.target === inputBackdrop){
@@ -1368,6 +1387,19 @@ function renderTopic(){
   const t = document.createElement('div');
   t.className = 'topic-card';
   t.textContent = String(state.topic.text);
+  t.setAttribute('role', 'button');
+  t.setAttribute('aria-label', 'お題を編集');
+  t.tabIndex = 0;
+  t.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    openTopicEditPop(state.topic?.text);
+  });
+  t.addEventListener('keydown', async (e) => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation();
+    openTopicEditPop(state.topic?.text);
+  });
 
   const ui = document.createElement('div');
   ui.className = 'topic-ui';
