@@ -244,7 +244,8 @@
     color:#fff;
     letter-spacing:.06em;
     user-select:none;
-    pointer-events:none;
+    pointer-events:auto;
+    cursor:pointer;
     flex:0 0 auto;
     white-space:nowrap;
     overflow:hidden;
@@ -868,6 +869,12 @@ async function setTopicText(text){
   });
 }
 
+function promptTopicEdit(currentText){
+  const next = window.prompt('お題を編集', String(currentText ?? '').trim());
+  if(next == null) return;
+  return setTopicText(next);
+}
+
 /* ✅ ヘルプ描画 */
 function renderHelpList(){
   helpBody.innerHTML = '';
@@ -1368,6 +1375,19 @@ function renderTopic(){
   const t = document.createElement('div');
   t.className = 'topic-card';
   t.textContent = String(state.topic.text);
+  t.setAttribute('role', 'button');
+  t.setAttribute('aria-label', 'お題を編集');
+  t.tabIndex = 0;
+  t.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await promptTopicEdit(state.topic?.text);
+  });
+  t.addEventListener('keydown', async (e) => {
+    if(e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation();
+    await promptTopicEdit(state.topic?.text);
+  });
 
   const ui = document.createElement('div');
   ui.className = 'topic-ui';
